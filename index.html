@@ -13,6 +13,8 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-heigh
 .landing h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:#e94560;text-align:center;letter-spacing:1px;margin-bottom:.4rem}
 .landing p{color:#666;font-size:14px;text-align:center;margin-bottom:2.5rem}
 .cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:700px}
+.welcome-box{background:#16213e;border:1px solid #0f3460;border-radius:12px;padding:16px 20px;max-width:600px;width:100%;margin-bottom:2rem;text-align:left}
+.welcome-box p{color:#aaa;font-size:13px;line-height:1.7;margin:0}
 .cat-btn{background:#16213e;border:1px solid #0f3460;border-radius:14px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:border-color .2s,transform .15s,background .2s}
 .cat-btn:hover{border-color:#e94560;background:#1e2a4a;transform:translateY(-3px)}
 .cat-btn.all-btn{background:#e94560;border-color:#e94560}
@@ -181,6 +183,7 @@ select option{background:#16213e}
 <div class="landing" id="landing">
   <h1>UK Solo Ark Shop</h1>
   <p>Server 5977 — Choose a category to browse</p>
+  <div class="welcome-box"><p>Welcome to UK Solo Shop. The site is still WIP, so please message if something doesn't look correct. Prices are discounted in the basket as you add them. Currently limited to 20 dinos per order to keep things fair and orders moving. Please allow 48 hours to fill orders.</p></div>
   <div class="cat-grid">
     <button class="cat-btn all-btn" id="btn-all"><span class="cat-emoji">🦕</span><span class="cat-label">All</span></button>
     <button class="cat-btn" data-type="Items"><span class="cat-emoji">📦</span><span class="cat-label">Items</span></button>
