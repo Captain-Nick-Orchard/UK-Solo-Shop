@@ -917,8 +917,7 @@ function placeOrder(){
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
   fetch(ORDER_URL, {
     method: 'POST',
-    headers: {'Content-Type': 'text/plain;charset=utf-8'},
-    body: payload
+    body: 'data=' + encodeURIComponent(payload)
   })
   .then(function(r){ return r.text(); })
   .then(function(){
