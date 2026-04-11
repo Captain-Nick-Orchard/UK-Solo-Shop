@@ -42,7 +42,8 @@ body.in-shop .shop{display:flex}
 .basket-count{background:#fff;color:#e94560;border-radius:20px;min-width:28px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
 #typeFilter{flex-shrink:0}
@@ -258,6 +259,8 @@ select option{background:#16213e}
     <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name</label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
     <div class="form-row"><label>Notes (optional)</label><textarea id="custNotes" placeholder="Any special requests..."></textarea></div>
     <p class="form-msg" id="formMsg"></p>
+  </div>
+  <div class="checkout-btn-wrap">
     <button class="checkout-btn" id="checkoutBtn">Place Order</button>
   </div>
 </div>
@@ -907,10 +910,9 @@ function placeOrder(){
   var saving=isTribe?getTribeDiscount(total):0;
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
-  fetch(GAS_URL+'?action=submitOrder', {
+  fetch(GAS_URL, {
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items})
+    body:JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName})
   })
   .then(function(r){ return r.json(); })
   .then(function(res){
