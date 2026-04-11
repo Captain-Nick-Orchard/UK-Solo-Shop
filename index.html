@@ -281,7 +281,7 @@ var allGroups=[], statsMap={}, colourIdCols=COLOUR_ID_COLS, basket=[], activeTyp
 // ── FETCH DATA FROM SHEETS API ────────────────────────────────
 function loadData() {
   var base = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/';
-  var key  = 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'; // public read-only API key
+  var key  = 'AIzaSyBcG7QFFQrWg4Wqgc2dSqGLGM5zg1BbINc'; // public read-only API key
 
   Promise.all([
     fetch(base + encodeURIComponent(INV_SHEET) + '?key=' + key).then(function(r){ return r.json(); }),
