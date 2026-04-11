@@ -570,7 +570,7 @@ function driveUrl(raw){ if(!raw) return null; var m=raw.match(/\/d\/([a-zA-Z0-9_
 function buildInvBadge(invHex, invText) {
   var tl=(invText||'').toLowerCase();
   if(tl==='in stock')         return "<span class='inv-badge' style='background:#1e9e4e;color:#fff'>"+invText+"</span>";
-  else if(tl==='low stock')   return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
+  else if(tl==='low stock')   return "<span class='inv-badge' style='background:#e07800;color:#fff'>"+invText+"</span>";
   else if(tl==='no stock')    return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
   else if(tl==='shop closed') return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
   else if(invText)            return "<span class='inv-badge' style='background:#444;color:#aaa'>"+invText+"</span>";
