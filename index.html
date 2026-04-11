@@ -915,29 +915,24 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  var xhr = new XMLHttpRequest();
-  xhr.open('POST', ORDER_URL, true);
-  xhr.onload = function(){
+  fetch(ORDER_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'text/plain;charset=utf-8'},
+    body: payload
+  })
+  .then(function(r){ return r.text(); })
+  .then(function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
     document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
     document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  };
-  xhr.onerror = function(){
-    // XHR cross-origin errors are often false negatives with GAS redirects
-    // Wait 3s then assume success if the request was sent
-    setTimeout(function(){
-      msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
-      basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
-      document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
-      document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
-      document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
-      document.getElementById('checkoutBtn').disabled=false;
-    }, 3000);
-  };
-  xhr.send(payload);
+  })
+  .catch(function(err){
+    msg.className='form-msg err'; msg.textContent='Failed: '+err.message;
+    document.getElementById('checkoutBtn').disabled=false;
+  });
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
