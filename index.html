@@ -288,11 +288,11 @@ function loadData() {
   var key  = 'AIzaSyBcG7QFFQrWg4Wqgc2dSqGLGM5zg1BbINc'; // public read-only API key
 
   Promise.all([
-    fetch(base + encodeURIComponent(INV_SHEET) + '?key=' + key).then(function(r){ return r.json(); }),
+    fetch(base + encodeURIComponent(INV_SHEET)   + '?key=' + key).then(function(r){ return r.json(); }),
     fetch(base + encodeURIComponent(STATS_SHEET) + '?key=' + key).then(function(r){ return r.json(); })
   ]).then(function(results) {
-    parseInventory(results[0]);
-    parseStats(results[1]);
+    parseStats(results[1]);       // parse stats first — needed for sigMap
+    parseInventory(results[0]);   // then group inventory using sigMap
     populateFilters();
     populateSidebar();
     document.getElementById('grid').innerHTML = '<p class="loading-msg">Choose a category to start browsing.</p>';
@@ -301,45 +301,59 @@ function loadData() {
   });
 }
 
+// sigMap built during parseStats — statsTag → signature string from cols C,D,E,F,I,J
+var sigMap = {};
+
 function parseInventory(data) {
   if (!data.values || data.values.length < 2) return;
   var rows    = data.values;
   var headers = rows[0].map(function(h){ return String(h).trim(); });
-  var groups  = [], current = [];
 
+  // Build all data rows (skip blanks)
+  var allRows = [];
   for (var i = 1; i < rows.length; i++) {
     var row     = rows[i];
     var isEmpty = row.every(function(c){ return !c || String(c).trim() === ''; });
-    if (isEmpty) {
-      if (current.length) { groups.push(current); current = []; }
-      continue;
-    }
+    if (isEmpty) continue;
     var obj = {};
     headers.forEach(function(h,k){ if(h) obj[h] = row[k] !== undefined ? row[k] : ''; });
-    // Sheets API doesn't give cell backgrounds — we simulate stock from text
+    // Simulate stock colours from text (Sheets API has no background data)
     var invText = String(obj[COL.inventory] || '').trim().toLowerCase();
     obj._inventoryText = String(obj[COL.inventory] || '').trim();
-    if (invText === 'in stock')        obj._inventoryHex = '#1e9e4e';
+    if      (invText === 'in stock')   obj._inventoryHex = '#1e9e4e';
     else if (invText === 'low stock')  obj._inventoryHex = '#4a3a00';
     else if (invText === 'no stock' || invText === 'shop closed') obj._inventoryHex = '#7a1a1a';
     else                               obj._inventoryHex = '#ffffff';
-    obj._variantHex  = '#ffffff';
-    obj._creatureBg  = '#ffffff';
-    obj._creatureFg  = '#ffffff';
-    current.push(obj);
+    obj._variantHex = '#ffffff';
+    obj._creatureBg = '#ffffff';
+    obj._creatureFg = '#ffffff';
+    allRows.push(obj);
   }
-  if (current.length) groups.push(current);
-  allGroups = groups;
+
+  // Group by creature name + stat signature (cols C,D,E,F,I,J from Stats sheet)
+  var groupMap   = {};
+  var groupOrder = [];
+  allRows.forEach(function(obj) {
+    var creature = String(obj[COL.creature] || '').trim();
+    var tag      = String(obj[COL.statsTag] || '').trim();
+    var sig      = (tag && sigMap[tag]) ? sigMap[tag] : '___no_sig___';
+    var key      = creature.toLowerCase() + '|||' + sig;
+    if (!groupMap[key]) { groupMap[key] = []; groupOrder.push(key); }
+    groupMap[key].push(obj);
+  });
+
+  allGroups = groupOrder.map(function(k){ return groupMap[k]; });
 }
 
 function parseStats(data) {
   statsMap = {};
+  sigMap   = {};
   if (!data.values || data.values.length < 2) return;
   var rows     = data.values;
   var rawHdrs  = rows[0].map(function(h){ return String(h).trim(); });
   var infoIdx  = rawHdrs.indexOf('Stats Tag');
   if (infoIdx < 0) infoIdx = rawHdrs.indexOf('Info');
-  if (infoIdx < 0) return;
+  if (infoIdx < 0) infoIdx = 1; // col B fallback
   var levelIIdx = rawHdrs.indexOf('Level_i');
   var cIdxMap = {};
   COLOUR_ID_COLS.forEach(function(key){ cIdxMap[key] = rawHdrs.indexOf(key); });
@@ -351,10 +365,20 @@ function parseStats(data) {
     else tiles[seen[h]].secondIdx = idx;
   });
 
+  // Cols C,D,E,F,I,J = indices 2,3,4,5,8,9
+  var sigCols = [2,3,4,5,8,9];
+
   for (var j = 1; j < rows.length; j++) {
     var sRow   = rows[j];
     var tagKey = String(sRow[infoIdx]||'').trim();
     if (!tagKey) continue;
+
+    // Build stat signature for grouping
+    var sig = sigCols.map(function(c){
+      return sRow[c] !== undefined && sRow[c] !== null ? String(sRow[c]).trim() : '';
+    }).join('|');
+    sigMap[tagKey] = sig;
+
     var levelI = (levelIIdx>=0 && sRow[levelIIdx]!==undefined && sRow[levelIIdx]!=='') ? String(sRow[levelIIdx]).trim() : null;
     var colourIds = {};
     COLOUR_ID_COLS.forEach(function(key){
@@ -369,6 +393,7 @@ function parseStats(data) {
     statsMap[tagKey] = {tiles:rowTiles,levelI:levelI,colourIds:colourIds};
   }
 }
+
 
 // ── NAVIGATION ────────────────────────────────────────────────
 function enterShop(type) {
