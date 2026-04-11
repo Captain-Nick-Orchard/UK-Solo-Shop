@@ -910,10 +910,11 @@ function placeOrder(){
   var saving=isTribe?getTribeDiscount(total):0;
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
-  var payload = {customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName};
-  fetch(GAS_URL+'?data='+encodeURIComponent(JSON.stringify(payload)), {
-    method:'GET',
-    mode:'no-cors'
+  var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
+  fetch(GAS_URL, {
+    method:'POST',
+    mode:'no-cors',
+    body:payload
   }).then(function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
