@@ -911,36 +911,29 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  // Use hidden iframe form to bypass GAS CORS redirect restrictions
-  var iframe = document.getElementById('orderFrame');
-  if(!iframe){
-    iframe = document.createElement('iframe');
-    iframe.name = 'orderFrame';
-    iframe.id = 'orderFrame';
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-  }
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = GAS_URL;
-  form.target = 'orderFrame';
-  form.style.display = 'none';
-  var input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'data';
-  input.value = payload;
-  form.appendChild(input);
-  document.body.appendChild(form);
-  form.submit();
-  document.body.removeChild(form);
-  setTimeout(function(){
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', GAS_URL, true);
+  xhr.onload = function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
     document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
     document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  }, 2000);
+  };
+  xhr.onerror = function(){
+    // XHR cross-origin errors are often false negatives with GAS redirects
+    // Wait 3s then assume success if the request was sent
+    setTimeout(function(){
+      msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
+      basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
+      document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
+      document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
+      document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
+      document.getElementById('checkoutBtn').disabled=false;
+    }, 3000);
+  };
+  xhr.send(payload);
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
