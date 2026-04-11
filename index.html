@@ -492,7 +492,15 @@ function applyFilters() {
     var card=document.createElement('div');
     card.className='card'; card.dataset.gi=gi; card.dataset.group=JSON.stringify(group);
     var startSi=0;
+    var ftLower=(document.getElementById('typeFilter').value||'').toLowerCase();
     if(fv){ for(var vi=0;vi<group.length;vi++){ if(String(group[vi][COL.variant]||'').toLowerCase().includes(fv)){ startSi=vi; break; } } }
+    if(ftLower&&startSi===0){
+      for(var vi=0;vi<group.length;vi++){
+        var vst=String(group[vi][COL.shopTag]||'').toLowerCase();
+        var vtp=String(group[vi][COL.type]||'').toLowerCase();
+        if(vst===ftLower||vtp===ftLower){ startSi=vi; break; }
+      }
+    }
     card.innerHTML=buildCardHTML(group,startSi);
     wireCardImages(card);
     (function(capturedGi){ card.addEventListener('click',function(e){
