@@ -812,7 +812,7 @@ function addToBasket(btn){
       item[rc.key]=raw*needed;
     }
   });
-  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown(); openBasket();
+  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown();
 }
 
 function removeItem(i){ basket.splice(i,1); updateCount(); renderBasket(); rebuildPaymentDropdown(); }
