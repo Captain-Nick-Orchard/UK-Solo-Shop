@@ -268,7 +268,11 @@ select option{background:#16213e}
 <script>
 // ── CONFIG ────────────────────────────────────────────────────
 var SHEET_ID   = '1JATQqPfb0Xxuaes_2hFrQkWp_sYQXVA3qJRFOpENYMo';
-var GAS_URL    = 'https://script.google.com/macros/s/AKfycbwswjj7lyEfKwO86l6aJ-lfzuLwo88DcsMA42VMiM-yjFFDjrXoBXGyX1dsoWAwOBWu/exec';
+// ── ORDER RECEIVER URL (separate GAS project — handles CORS correctly)
+// After deploying OrderReceiver.gs, paste its /exec URL here:
+var GAS_URL   = 'https://script.google.com/macros/s/AKfycbwswjj7lyEfKwO86l6aJ-lfzuLwo88DcsMA42VMiM-yjFFDjrXoBXGyX1dsoWAwOBWu/exec';
+// Separate order receiver script URL — paste after deploying OrderReceiver.gs
+var ORDER_URL = 'https://script.google.com/macros/s/AKfycbxWZc8NDouTgsnqmRQsYFdVorxlNP_sK2EWVL22kuOHud9Ac3KoIZeY6s_B6L2xxMau/exec';
 var INV_SHEET  = 'Inventory';
 var STATS_SHEET= 'Stats';
 var BASKET_LIMIT = 20;
@@ -912,7 +916,7 @@ function placeOrder(){
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
   var xhr = new XMLHttpRequest();
-  xhr.open('POST', GAS_URL, true);
+  xhr.open('POST', ORDER_URL, true);
   xhr.onload = function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
