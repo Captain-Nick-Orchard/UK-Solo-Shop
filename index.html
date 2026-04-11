@@ -468,6 +468,17 @@ function applyFilters() {
   var grid=document.getElementById('grid');
   document.getElementById('count').textContent=filtered.length+' creature'+(filtered.length!==1?'s':'');
   if(!filtered.length){ grid.innerHTML="<p class='empty'>No creatures match.</p>"; return; }
+  var ft=document.getElementById('typeFilter').value;
+  var fc=document.getElementById('creatureFilter').value;
+  var fq=document.getElementById('search').value;
+  if(ft||fc||fq){
+    filtered=filtered.slice().sort(function(a,b){
+      var levelA=0,levelB=0;
+      a.forEach(function(r){ var s=statsMap[String(r[COL.statsTag]||'').trim()]; if(s&&s.levelI) levelA=Math.max(levelA,Number(s.levelI)+1); });
+      b.forEach(function(r){ var s=statsMap[String(r[COL.statsTag]||'').trim()]; if(s&&s.levelI) levelB=Math.max(levelB,Number(s.levelI)+1); });
+      return levelB-levelA;
+    });
+  }
   grid.innerHTML='';
   var fv=document.getElementById('variantFilter').value.toLowerCase();
   filtered.forEach(function(group,gi){
@@ -855,7 +866,7 @@ function renderSummary(){
     if(bundledIdxs.indexOf(i)!==-1) return;
     var v=it.gender==='Pair x2'?singlePairScaled:liveVal(it);
     total+=v;
-    summaryHtml+="<div class='os-row'><span>"+it.creature+" (Lvl "+it.level+" · "+it.gender+")</span>";
+    summaryHtml+="<div class='os-row'><span>"+it.creature+(it.variant?" ("+it.variant+")":"")+" · "+it.gender+"</span>";
     summaryHtml+="<span style='display:flex;align-items:center;gap:6px'>"+(v>0?v+' '+label:'—')+"<button onclick='removeItem("+i+")' style='background:#e94560;border:none;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer'>&times;</button></span></div>";
   });
   for(var b=0;b<bundles;b++){
@@ -863,7 +874,7 @@ function renderSummary(){
     summaryHtml+="<div class='os-row os-saving'><span style='font-weight:700'>Bundle "+(b+1)+" — 3 pairs for "+bundlePriceScaled+" "+label+":</span></div>";
     bIdxs.forEach(function(idx){
       var it=basket[idx];
-      summaryHtml+="<div class='os-row' style='padding-left:14px'><span>"+it.creature+" (Lvl "+it.level+")</span>";
+      summaryHtml+="<div class='os-row' style='padding-left:14px'><span>"+it.creature+(it.variant?" ("+it.variant+")":"")+"</span>";
       summaryHtml+="<button onclick='removeItem("+idx+")' style='background:#e94560;border:none;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer'>&times;</button></div>";
     });
     total+=bundlePriceScaled;
