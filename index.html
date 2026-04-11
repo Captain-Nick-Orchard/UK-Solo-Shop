@@ -333,11 +333,18 @@ function parseInventory(data) {
   // Group by creature name + stat signature (cols C,D,E,F,I,J from Stats sheet)
   var groupMap   = {};
   var groupOrder = [];
+  var noSigCount = 0;
   allRows.forEach(function(obj) {
     var creature = String(obj[COL.creature] || '').trim();
     var tag      = String(obj[COL.statsTag] || '').trim();
-    var sig      = (tag && sigMap[tag]) ? sigMap[tag] : '___no_sig___';
-    var key      = creature.toLowerCase() + '|||' + sig;
+    var sig;
+    if (tag && sigMap[tag]) {
+      sig = sigMap[tag];
+    } else {
+      // No matching stat signature — give each row its own unique group
+      sig = '___no_sig_' + (noSigCount++) + '___';
+    }
+    var key = creature.toLowerCase() + '|||' + sig;
     if (!groupMap[key]) { groupMap[key] = []; groupOrder.push(key); }
     groupMap[key].push(obj);
   });
