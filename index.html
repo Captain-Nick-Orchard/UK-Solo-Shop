@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UK Solo Ark Shop - Server 5977</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-height:100vh;overflow-x:hidden}
+
+/* ── Landing ── */
+.landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;background:linear-gradient(160deg,#12192e 0%,#1a1a2e 60%,#0f3460 100%)}
+.landing h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;color:#e94560;text-align:center;letter-spacing:1px;margin-bottom:.4rem}
+.landing p{color:#666;font-size:14px;text-align:center;margin-bottom:2.5rem}
+.cat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:700px}
+.cat-btn{background:#16213e;border:1px solid #0f3460;border-radius:14px;padding:18px 10px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:border-color .2s,transform .15s,background .2s}
+.cat-btn:hover{border-color:#e94560;background:#1e2a4a;transform:translateY(-3px)}
+.cat-btn.all-btn{background:#e94560;border-color:#e94560}
+.cat-btn.all-btn:hover{background:#c73652;border-color:#c73652}
+.cat-emoji{font-size:2.2rem;line-height:1}
+.cat-label{font-size:11px;font-weight:600;color:#aaa;text-align:center;text-transform:uppercase;letter-spacing:.6px;line-height:1.3}
+.cat-btn.all-btn .cat-label{color:#fff}
+
+/* ── Shop (hidden until button clicked) ── */
+.shop{display:none;flex-direction:column;min-height:100vh}
+body.in-shop .landing{display:none}
+body.in-shop .shop{display:flex}
+
+/* ── Header ── */
+.shop-header{background:#16213e;padding:.75rem 1.5rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:20}
+.shop-header h1{font-size:clamp(1rem,2.5vw,1.4rem);font-weight:800;color:#e94560;letter-spacing:1px;text-align:center}
+.header-right{display:flex;align-items:center;gap:10px}
+#count{font-size:12px;color:#888}
+.back-btn{background:#0f3460;color:#aaa;border:1px solid #0f3460;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;flex-shrink:0}
+.back-btn:hover{border-color:#e94560;color:#fff}
+.basket-btn{background:#e94560;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.basket-btn:hover{background:#c73652}
+.basket-count{background:#fff;color:#e94560;border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+
+/* ── Controls ── */
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19}
+input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
+input:focus,select:focus{border-color:#e94560}
+#typeFilter{flex-shrink:0}
+#search{flex:1;min-width:140px}
+select option{background:#16213e}
+.sidebar-toggle{background:#0f3460;border:1px solid #0f3460;color:#aaa;border-radius:8px;padding:6px 10px;font-size:16px;cursor:pointer;line-height:1;flex-shrink:0}
+.sidebar-toggle:hover{border-color:#e94560;color:#fff}
+
+/* ── Shop body + sidebar ── */
+.shop-body{display:flex;flex:1;min-height:0}
+.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:114px;height:calc(100vh - 114px)}
+.sidebar.closed{width:0;overflow:hidden}
+.sidebar-header{padding:12px 16px;font-size:11px;font-weight:700;color:#e94560;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #0f3460;white-space:nowrap}
+.sidebar-items{display:flex;flex-direction:column;padding:8px 0}
+.sidebar-item{padding:7px 16px;font-size:13px;color:#aaa;cursor:pointer;white-space:nowrap;border-left:3px solid transparent;transition:background .15s,color .15s}
+.sidebar-item:hover{background:#1a2a4a;color:#e0e0e0}
+.sidebar-item.active{color:#e94560;border-left-color:#e94560;background:#1a1a2e;font-weight:600}
+.sidebar-type{padding:10px 16px 6px;font-size:10px;font-weight:700;color:#e94560;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;cursor:pointer;margin-top:4px;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.sidebar-type:hover{color:#ff6b7a}
+.sidebar-arrow{font-size:9px;transition:transform .2s;margin-left:6px}
+.sidebar-type.collapsed .sidebar-arrow{transform:rotate(-90deg)}
+.sidebar-child{padding-left:24px;font-size:12px}
+.sidebar-child.hidden{display:none}
+
+/* ── Grid ── */
+.grid{flex:1;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:1.5rem;align-content:start}
+
+/* ── Cards ── */
+.card{background:#16213e;border-radius:12px;border:1px solid #0f3460;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .15s;cursor:pointer}
+.card:hover{border-color:#e94560;transform:translateY(-2px)}
+.card-header{padding:10px 14px;border-bottom:1px solid #0f3460;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.card-name{font-weight:700;font-size:15px;flex:1;text-align:center}
+.level-badge{font-size:12px;font-weight:600;padding:3px 8px;border-radius:20px;background:#e94560;color:#fff;white-space:nowrap;flex-shrink:0}
+.inv-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;flex-shrink:0}
+.card-img{width:100%;height:180px;overflow:hidden;background:#0f3460;position:relative;display:flex;align-items:center;justify-content:center}
+.card-img img{width:100%;height:100%;object-fit:contain;padding:8px;opacity:0;transition:opacity .3s}
+.card-img img.loaded{opacity:1}
+.card-img img.errored{display:none}
+.img-placeholder{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;color:#444;font-size:12px;opacity:.6;text-align:center;padding:8px}
+.sel-bar{padding:8px 16px;border-bottom:1px solid #0f3460;text-align:center}
+.sel-bar.variant{background:#0f3460}
+.sel-bar.gender{background:#12294a}
+.sel-bar.qty{background:#0d2236}
+.sel-bar label{font-size:11px;color:#888;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.7px;text-align:center}
+.sel-bar select{width:100%;padding:6px 10px;font-size:13px;border-radius:6px;border:1px solid #1a1a2e;background:#16213e;color:#e0e0e0}
+.var-count{font-size:10px;color:#e0e0e0;margin-left:5px;font-weight:400}
+.info-bar{padding:8px 16px;border-bottom:1px solid #0f3460;background:#111827;text-align:center}
+.info-text{font-size:12px;color:#aaa;line-height:1.5;text-align:center}
+.colour-id-bar{padding:8px 16px;border-bottom:1px solid #0f3460;background:#0d1f38;text-align:center}
+.colour-id-bar label{font-size:11px;color:#888;display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.7px}
+.colour-id-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px}
+.cid-item{background:#0f3460;border-radius:5px;padding:3px 4px;text-align:center}
+.cid-label{font-size:8px;color:#4a6a8a;margin-bottom:1px;text-transform:uppercase}
+.cid-value{font-size:11px;font-weight:600;color:#7ec8e3}
+.card-body{padding:12px 16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.section-title{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px;margin-top:4px;text-align:center}
+.res-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.res-item{background:#0f3460;border-radius:6px;padding:5px 6px;text-align:center}
+.res-label{font-size:10px;color:#888;margin-bottom:2px}
+.res-value{font-size:13px;font-weight:600;color:#555;text-align:center}
+.res-value.hv{color:#e94560}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.stat-item{background:#0a2a40;border-radius:6px;padding:4px 6px;text-align:center}
+.stat-header{font-size:10px;font-weight:600;white-space:nowrap;margin-bottom:2px;display:flex;align-items:center;justify-content:center;gap:2px}
+.stat-name{color:#6a9aaa;text-transform:uppercase;letter-spacing:.4px}
+.stat-hsep{color:#3a6a7a;margin:0 2px;font-weight:400}
+.stat-v1{color:#7ec8e3}
+.stat-value-row{font-size:9px;color:#3a6a7a;white-space:nowrap;text-align:center}
+.stat-val{font-size:11px;font-weight:600;color:#7ec8e3;display:block;margin-top:1px}
+.add-btn{margin:12px 16px 14px;padding:9px;background:#e94560;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .2s;width:calc(100% - 32px)}
+.add-btn:hover{background:#c73652}
+.add-btn.no-stock{background:#333;color:#666;cursor:not-allowed}
+.add-btn.no-stock:hover{background:#333}
+
+/* ── Mobile overlay ── */
+.card-overlay{display:none;position:fixed;inset:0;z-index:40;background:#1a1a2e;flex-direction:column;overflow:hidden}
+.card-overlay.open{display:flex}
+.overlay-bar{background:#16213e;padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #0f3460;flex-shrink:0}
+.overlay-close{background:none;border:none;color:#aaa;font-size:22px;cursor:pointer;padding:0;line-height:1}
+.overlay-nav{display:flex;align-items:center;gap:10px}
+.overlay-arrow{background:#0f3460;border:1px solid #0f3460;color:#aaa;border-radius:8px;padding:6px 12px;font-size:18px;cursor:pointer;line-height:1}
+.overlay-arrow:hover{border-color:#e94560;color:#fff}
+.overlay-arrow:disabled{opacity:.3;cursor:not-allowed}
+.overlay-pos{font-size:12px;color:#666;min-width:50px;text-align:center}
+.overlay-content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100vw}
+.swipe-hint{text-align:center;padding:6px;font-size:11px;color:#333;flex-shrink:0}
+
+/* ── Basket ── */
+.basket-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50}
+.basket-overlay.open{display:block}
+.basket-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;background:#16213e;border-left:1px solid #0f3460;z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s}
+.basket-panel.open{transform:translateX(0)}
+.basket-top{padding:1rem 1.5rem;border-bottom:1px solid #0f3460;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.basket-top h2{font-size:1.1rem;font-weight:700;color:#e94560}
+.basket-slots{font-size:12px;color:#888;margin-top:2px}
+.close-btn{background:none;border:none;color:#888;font-size:22px;cursor:pointer;line-height:1;padding:0}
+.close-btn:hover{color:#fff}
+.basket-items{flex:1;overflow-y:auto;padding:1rem 1.5rem;display:flex;flex-direction:column;gap:10px}
+.basket-empty{text-align:center;color:#555;margin-top:3rem;font-size:14px}
+.basket-item{background:#0f3460;border-radius:10px;padding:12px 14px;position:relative;display:flex;flex-direction:column;gap:3px}
+.bi-name{font-weight:600;font-size:14px;color:#fff;padding-right:24px}
+.bi-detail{font-size:12px;color:#aaa}
+.bi-cost{font-size:12px;color:#e94560;font-weight:600}
+.bi-remove{position:absolute;top:10px;right:10px;background:none;border:none;color:#555;font-size:18px;cursor:pointer;line-height:1;padding:0}
+.bi-remove:hover{color:#e94560}
+.checkout-form{padding:1rem 1.5rem;border-top:1px solid #0f3460;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.checkout-form h3{font-size:14px;font-weight:600;color:#e0e0e0}
+.form-row{display:flex;flex-direction:column;gap:4px}
+.form-row label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.6px}
+.form-row input,.form-row textarea,.form-row select{width:100%;padding:8px 10px;border:1px solid #0f3460;border-radius:8px;background:#0f3460;color:#e0e0e0;font-size:13px;outline:none}
+.form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:#e94560}
+.form-row textarea{resize:vertical;min-height:52px}
+.tribe-row{display:flex;align-items:center;gap:10px;background:#0f3460;border-radius:8px;padding:10px 12px}
+.tribe-row label{font-size:13px;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:8px;flex:1}
+.tribe-row input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:#e94560}
+.discount-badge{font-size:11px;font-weight:700;color:#66cc88;background:rgba(30,158,78,0.3);padding:2px 8px;border-radius:10px;white-space:nowrap}
+.order-summary{background:#0f3460;border-radius:8px;padding:10px 12px;font-size:13px;color:#aaa;display:flex;flex-direction:column;gap:4px}
+.os-row{display:flex;justify-content:space-between;gap:8px}
+.os-row span:last-child{color:#e0e0e0;font-weight:600;white-space:nowrap}
+.os-total{border-top:1px solid #1a1a2e;margin-top:6px;padding-top:6px}
+.os-total span{color:#e94560 !important}
+.os-saving{border-top:1px solid #1a1a2e;margin-top:4px;padding-top:4px;color:#66cc88 !important}
+.checkout-btn{padding:11px;background:#e94560;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;width:100%}
+.checkout-btn:hover{background:#c73652}
+.checkout-btn:disabled{background:#444;cursor:not-allowed}
+.form-msg{font-size:13px;text-align:center;min-height:18px}
+.form-msg.ok{color:#66cc88}.form-msg.err{color:#e94560}
+.empty{text-align:center;padding:4rem;color:#555;font-size:15px;grid-column:1/-1}
+.loading-msg{text-align:center;padding:4rem;color:#555;font-size:15px;grid-column:1/-1}
+.error-msg{text-align:center;padding:4rem;color:#e94560;font-size:14px;grid-column:1/-1;line-height:1.8}
+</style>
+</head>
+<body>
+
+<!-- ── Landing ── -->
+<div class="landing" id="landing">
+  <h1>UK Solo Ark Shop</h1>
+  <p>Server 5977 — Choose a category to browse</p>
+  <div class="cat-grid">
+    <button class="cat-btn all-btn" id="btn-all"><span class="cat-emoji">🦕</span><span class="cat-label">All</span></button>
+    <button class="cat-btn" data-type="Items"><span class="cat-emoji">📦</span><span class="cat-label">Items</span></button>
+    <button class="cat-btn" data-type="Boss Dinos"><span class="cat-emoji">👑</span><span class="cat-label">Boss Dinos</span></button>
+    <button class="cat-btn" data-type="Flying"><span class="cat-emoji">🦅</span><span class="cat-label">Flying Dinos</span></button>
+    <button class="cat-btn" data-type="Water"><span class="cat-emoji">🌊</span><span class="cat-label">Water Dinos</span></button>
+    <button class="cat-btn" data-type="DPS &amp; Soakers"><span class="cat-emoji">⚔️</span><span class="cat-label">DPS &amp; Soakers</span></button>
+    <button class="cat-btn" data-type="Utility"><span class="cat-emoji">🔧</span><span class="cat-label">Utility Dinos</span></button>
+    <button class="cat-btn" data-type="Shoulder Pets"><span class="cat-emoji">🐾</span><span class="cat-label">Shoulder Pets</span></button>
+    <button class="cat-btn" data-type="Single Clones"><span class="cat-emoji">🧬</span><span class="cat-label">Single Clones</span></button>
+  </div>
+</div>
+
+<!-- ── Shop ── -->
+<div class="shop" id="shop">
+  <div class="shop-header">
+    <button class="back-btn" id="backBtn">&#8592; Back</button>
+    <h1>UK Solo Ark Shop<br><span style="font-size:11px;color:#888;font-weight:400">Server 5977 · Coords 85/68 · Discord: Captain Nick#4954</span></h1>
+    <div class="header-right">
+      <span id="count"></span>
+      <button class="basket-btn" id="basketOpenBtn">Basket <span class="basket-count" id="basketCount">0</span></button>
+    </div>
+  </div>
+  <div class="controls">
+    <button class="sidebar-toggle" id="sidebarToggle" title="Toggle menu">&#9776;</button>
+    <select id="typeFilter"><option value="">All types</option></select>
+    <input id="search" type="text" placeholder="Search creatures...">
+    <select id="creatureFilter"><option value="">All creatures</option></select>
+    <select id="variantFilter"><option value="">All variants</option></select>
+  </div>
+  <div class="shop-body">
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">Browse</div>
+      <div class="sidebar-items" id="sidebarItems"></div>
+    </div>
+    <div class="grid" id="grid"><p class="loading-msg">Loading creatures...</p></div>
+  </div>
+</div>
+
+<!-- ── Mobile overlay ── -->
+<div class="card-overlay" id="cardOverlay">
+  <div class="overlay-bar">
+    <button class="overlay-close" id="overlayClose">&#x2715;</button>
+    <div class="overlay-nav">
+      <button class="overlay-arrow" id="overlayPrev">&#8592;</button>
+      <span class="overlay-pos" id="overlayPos"></span>
+      <button class="overlay-arrow" id="overlayNext">&#8594;</button>
+    </div>
+    <button class="basket-btn" id="overlayBasketBtn" style="padding:6px 10px;font-size:12px">Basket <span class="basket-count" id="overlayBasketCount">0</span></button>
+  </div>
+  <div class="overlay-content" id="overlayContent"></div>
+  <div class="swipe-hint" id="swipeHint">&#8592; swipe to browse &#8594;</div>
+</div>
+
+<!-- ── Basket ── -->
+<div class="basket-overlay" id="basketOverlay"></div>
+<div class="basket-panel" id="basketPanel">
+  <div class="basket-top">
+    <div><h2>Your Basket</h2><div class="basket-slots" id="basketSlots">0 / 20 slots used</div></div>
+    <button class="close-btn" id="basketCloseBtn">&#x2715;</button>
+  </div>
+  <div class="basket-items" id="basketItems"><p class="basket-empty">Your basket is empty.</p></div>
+  <div class="checkout-form">
+    <h3>Checkout</h3>
+    <div class="form-row"><label>Your Name</label><input id="custName" type="text" placeholder="e.g. TribeLeader99"></div>
+    <div class="form-row"><label>Discord Username</label><input id="custDiscord" type="text" placeholder="e.g. username#1234"></div>
+    <div class="tribe-row">
+      <label><input type="checkbox" id="tribeCheck"> On Server Discount <span class="discount-badge">35% off</span></label>
+    </div>
+    <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name</label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
+    <div id="paymentRow" class="form-row" style="display:none"><label>Payment Method</label><select id="paymentSelect"></select></div>
+    <div id="orderSummary" style="display:none" class="order-summary"></div>
+    <div class="form-row"><label>Notes (optional)</label><textarea id="custNotes" placeholder="Any special requests..."></textarea></div>
+    <p class="form-msg" id="formMsg"></p>
+    <button class="checkout-btn" id="checkoutBtn">Place Order</button>
+  </div>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────
+var SHEET_ID   = '1JATQqPfb0Xxuaes_2hFrQkWp_sYQXVA3qJRFOpENYMo';
+var GAS_URL    = 'https://script.google.com/macros/s/AKfycbwswjj7lyEfKwO86l6aJ-lfzuLwo88DcsMA42VMiM-yjFFDjrXoBXGyX1dsoWAwOBWu/exec';
+var INV_SHEET  = 'Inventory';
+var STATS_SHEET= 'Stats';
+var BASKET_LIMIT = 20;
+
+var COL = {
+  creature:'Creature', variant:'Variant', level:'Level', statsTag:'Stats Tag',
+  info:'Info', inventory:'Inventory', type:'Type',
+  tek:'Tek', poly:'Poly', ingots:'Ingots', crystal:'Crystal', shards:'Element', dust:'Element Dust',
+  imageUrl:'Image URL', amountAvailable:'Amount Available'
+};
+var RESOURCES = [
+  {label:'Tek',key:'tek'},{label:'Poly',key:'poly'},{label:'Ingots',key:'ingots'},
+  {label:'Crystal',key:'crystal'},{label:'Element',key:'shards'},{label:'Element Dust',key:'dust'}
+];
+var COLOUR_ID_COLS = ['c0','c1','c2','c3','c4','c5'];
+
+// ── STATE ─────────────────────────────────────────────────────
+var allGroups=[], statsMap={}, colourIdCols=COLOUR_ID_COLS, basket=[], activeType='', overlayIdx=0;
+
+// ── FETCH DATA FROM SHEETS API ────────────────────────────────
+function loadData() {
+  var base = 'https://sheets.googleapis.com/v4/spreadsheets/' + SHEET_ID + '/values/';
+  var key  = 'AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY'; // public read-only API key
+
+  Promise.all([
+    fetch(base + encodeURIComponent(INV_SHEET) + '?key=' + key).then(function(r){ return r.json(); }),
+    fetch(base + encodeURIComponent(STATS_SHEET) + '?key=' + key).then(function(r){ return r.json(); })
+  ]).then(function(results) {
+    parseInventory(results[0]);
+    parseStats(results[1]);
+    populateFilters();
+    populateSidebar();
+    document.getElementById('grid').innerHTML = '<p class="loading-msg">Choose a category to start browsing.</p>';
+  }).catch(function(err) {
+    document.getElementById('grid').innerHTML = '<p class="error-msg">Failed to load shop data.<br>'+err.message+'</p>';
+  });
+}
+
+function parseInventory(data) {
+  if (!data.values || data.values.length < 2) return;
+  var rows    = data.values;
+  var headers = rows[0].map(function(h){ return String(h).trim(); });
+  var groups  = [], current = [];
+
+  for (var i = 1; i < rows.length; i++) {
+    var row     = rows[i];
+    var isEmpty = row.every(function(c){ return !c || String(c).trim() === ''; });
+    if (isEmpty) {
+      if (current.length) { groups.push(current); current = []; }
+      continue;
+    }
+    var obj = {};
+    headers.forEach(function(h,k){ if(h) obj[h] = row[k] !== undefined ? row[k] : ''; });
+    // Sheets API doesn't give cell backgrounds — we simulate stock from text
+    var invText = String(obj[COL.inventory] || '').trim().toLowerCase();
+    obj._inventoryText = String(obj[COL.inventory] || '').trim();
+    if (invText === 'in stock')        obj._inventoryHex = '#1e9e4e';
+    else if (invText === 'low stock')  obj._inventoryHex = '#4a3a00';
+    else if (invText === 'no stock' || invText === 'shop closed') obj._inventoryHex = '#7a1a1a';
+    else                               obj._inventoryHex = '#ffffff';
+    obj._variantHex  = '#ffffff';
+    obj._creatureBg  = '#ffffff';
+    obj._creatureFg  = '#ffffff';
+    current.push(obj);
+  }
+  if (current.length) groups.push(current);
+  allGroups = groups;
+}
+
+function parseStats(data) {
+  statsMap = {};
+  if (!data.values || data.values.length < 2) return;
+  var rows     = data.values;
+  var rawHdrs  = rows[0].map(function(h){ return String(h).trim(); });
+  var infoIdx  = rawHdrs.indexOf('Stats Tag');
+  if (infoIdx < 0) infoIdx = rawHdrs.indexOf('Info');
+  if (infoIdx < 0) return;
+  var levelIIdx = rawHdrs.indexOf('Level_i');
+  var cIdxMap = {};
+  COLOUR_ID_COLS.forEach(function(key){ cIdxMap[key] = rawHdrs.indexOf(key); });
+
+  var seen = {}, tiles = [];
+  rawHdrs.forEach(function(h, idx) {
+    if (!h || h==='Info' || h==='Stats Tag' || h.indexOf('_')!==-1 || COLOUR_ID_COLS.indexOf(h)!==-1) return;
+    if (!seen.hasOwnProperty(h)) { seen[h]=tiles.length; tiles.push({label:h,firstIdx:idx,secondIdx:-1}); }
+    else tiles[seen[h]].secondIdx = idx;
+  });
+
+  for (var j = 1; j < rows.length; j++) {
+    var sRow   = rows[j];
+    var tagKey = String(sRow[infoIdx]||'').trim();
+    if (!tagKey) continue;
+    var levelI = (levelIIdx>=0 && sRow[levelIIdx]!==undefined && sRow[levelIIdx]!=='') ? String(sRow[levelIIdx]).trim() : null;
+    var colourIds = {};
+    COLOUR_ID_COLS.forEach(function(key){
+      var idx = cIdxMap[key];
+      colourIds[key] = (idx>=0 && sRow[idx]!==undefined && sRow[idx]!=='') ? String(sRow[idx]).trim() : '-';
+    });
+    var rowTiles = tiles.map(function(tile){
+      var v1 = String(sRow[tile.firstIdx]==null?'':sRow[tile.firstIdx]).trim()||'-';
+      var v2 = tile.secondIdx>=0 ? String(sRow[tile.secondIdx]==null?'':sRow[tile.secondIdx]).trim()||'-' : null;
+      return {label:tile.label,v1:v1,v2:v2};
+    });
+    statsMap[tagKey] = {tiles:rowTiles,levelI:levelI,colourIds:colourIds};
+  }
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────
+function enterShop(type) {
+  activeType = type;
+  document.body.classList.add('in-shop');
+  var tf = document.getElementById('typeFilter');
+  if (tf) tf.value = type;
+  if (allGroups.length) applyFilters();
+  else document.getElementById('grid').innerHTML = '<p class="loading-msg">Loading creatures...</p>';
+}
+
+function goBack() {
+  document.body.classList.remove('in-shop');
+  closeBasket();
+}
+
+// ── FILTERS ───────────────────────────────────────────────────
+function populateFilters() {
+  var names=[], types=[], varKeywords=[];
+  var STOP=['aberrant','the','a','an','top','max','clone','level','lvl','-'];
+  allGroups.forEach(function(g){ g.forEach(function(r){
+    var n=String(r[COL.creature]||'').trim(), t=String(r[COL.type]||'').trim(), v=String(r[COL.variant]||'').trim();
+    if(n&&names.indexOf(n)===-1) names.push(n);
+    if(t&&types.indexOf(t)===-1) types.push(t);
+    if(v){
+      var clean=v.replace(/[-–—]/g,' ').replace(/[^a-zA-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+      var words=clean.split(' ').filter(Boolean);
+      for(var wi=0;wi<words.length;wi++){
+        var w=words[wi];
+        if(STOP.indexOf(w.toLowerCase())===-1&&!/^\d+$/.test(w)){
+          var kw=w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
+          if(varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
+          break;
+        }
+      }
+    }
+  }); });
+  names.sort(); types.sort(); varKeywords.sort();
+  var cf=document.getElementById('creatureFilter'), tf=document.getElementById('typeFilter'), vf=document.getElementById('variantFilter');
+  names.forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; cf.appendChild(o); });
+  types.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; tf.appendChild(o); });
+  varKeywords.forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=k; vf.appendChild(o); });
+}
+
+function getFiltered() {
+  var q=document.getElementById('search').value.toLowerCase();
+  var fc=document.getElementById('creatureFilter').value.toLowerCase();
+  var ft=document.getElementById('typeFilter').value.toLowerCase();
+  var fv=document.getElementById('variantFilter').value.toLowerCase();
+  return allGroups.filter(function(g){
+    return g.some(function(r){
+      var nm=String(r[COL.creature]||'').toLowerCase(), tp=String(r[COL.type]||'').toLowerCase();
+      var vr=String(r[COL.variant]||'').toLowerCase(), inf=String(r[COL.info]||'').toLowerCase();
+      var tag=String(r[COL.statsTag]||'').toLowerCase();
+      return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv));
+    });
+  });
+}
+
+function applyFilters() {
+  var filtered=getFiltered();
+  var grid=document.getElementById('grid');
+  document.getElementById('count').textContent=filtered.length+' creature'+(filtered.length!==1?'s':'');
+  if(!filtered.length){ grid.innerHTML="<p class='empty'>No creatures match.</p>"; return; }
+  grid.innerHTML='';
+  var fv=document.getElementById('variantFilter').value.toLowerCase();
+  filtered.forEach(function(group,gi){
+    var card=document.createElement('div');
+    card.className='card'; card.dataset.gi=gi; card.dataset.group=JSON.stringify(group);
+    var startSi=0;
+    if(fv){ for(var vi=0;vi<group.length;vi++){ if(String(group[vi][COL.variant]||'').toLowerCase().includes(fv)){ startSi=vi; break; } } }
+    card.innerHTML=buildCardHTML(group,startSi);
+    wireCardImages(card);
+    (function(capturedGi){ card.addEventListener('click',function(e){
+      if(!('ontouchstart' in window)&&navigator.maxTouchPoints===0) return;
+      if(e.target.closest('button,select,input,textarea,label')) return;
+      openOverlay(capturedGi);
+    }); })(gi);
+    grid.appendChild(card);
+  });
+}
+
+// ── SIDEBAR ───────────────────────────────────────────────────
+function populateSidebar() {
+  var items=document.getElementById('sidebarItems');
+  if(!items) return;
+  items.innerHTML='';
+  var allItem=document.createElement('div');
+  allItem.className='sidebar-item active'; allItem.textContent='All Creatures';
+  allItem.onclick=function(){ sidebarFilter('','',allItem); };
+  items.appendChild(allItem);
+  var typeMap={}, untyped=[];
+  allGroups.forEach(function(g){
+    var n=String(g[0][COL.creature]||'').trim(), t=String(g[0][COL.type]||'').trim();
+    if(!n) return;
+    if(t){ if(!typeMap[t]) typeMap[t]=[]; if(typeMap[t].indexOf(n)===-1) typeMap[t].push(n); }
+    else { if(untyped.indexOf(n)===-1) untyped.push(n); }
+  });
+  function renderTypeSection(type,names){
+    var typeEl=document.createElement('div');
+    typeEl.className='sidebar-type';
+    typeEl.innerHTML='<span>'+type+'</span><span class="sidebar-arrow">&#9660;</span>';
+    var collapsed=false;
+    typeEl.onclick=(function(t,el){ return function(){
+      collapsed=!collapsed; el.classList.toggle('collapsed',collapsed);
+      var next=el.nextSibling;
+      while(next&&next.classList&&next.classList.contains('sidebar-child')){ next.classList.toggle('hidden',collapsed); next=next.nextSibling; }
+      if(!collapsed) sidebarFilter('',t,el);
+    }; })(type,typeEl);
+    items.appendChild(typeEl);
+    names.sort().forEach(function(n){
+      var el=document.createElement('div');
+      el.className='sidebar-item sidebar-child'; el.textContent=n;
+      el.onclick=(function(name,elem){ return function(e){ e.stopPropagation(); sidebarFilter(name,'',elem); }; })(n,el);
+      items.appendChild(el);
+    });
+  }
+  Object.keys(typeMap).sort().forEach(function(t){ renderTypeSection(t,typeMap[t]); });
+  if(untyped.length) renderTypeSection('Other',untyped);
+}
+
+function sidebarFilter(name,type,el){
+  var cf=document.getElementById('creatureFilter'), tf=document.getElementById('typeFilter');
+  if(cf) cf.value=name; if(tf) tf.value=type;
+  applyFilters();
+  document.querySelectorAll('.sidebar-item,.sidebar-type').forEach(function(i){ i.classList.remove('active'); });
+  if(el) el.classList.add('active');
+  if('ontouchstart' in window) document.getElementById('sidebar').classList.add('closed');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function isReddish(h){ if(!h||h==='#ffffff'||h==='white') return false; var c=h.replace('#',''); if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return r>150&&r>g*1.4&&r>b*1.4; }
+function isGreenish(h){ if(!h||h==='#ffffff'||h==='white') return false; var c=h.replace('#',''); if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return g>r&&g>b&&g>80; }
+function isYellowish(h){ if(!h||h==='#ffffff'||h==='white') return false; var c=h.replace('#',''); if(c.length===3)c=c[0]+c[0]+c[1]+c[1]+c[2]+c[2]; var r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16); return r>150&&g>100&&b<100&&r>b&&g>b; }
+function isDefaultHex(h){ return !h||h==='#ffffff'||h==='white'||h==='rgb(255,255,255)'; }
+function driveUrl(raw){ if(!raw) return null; var m=raw.match(/\/d\/([a-zA-Z0-9_-]+)/)||raw.match(/id=([a-zA-Z0-9_-]+)/); return m?'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w400':null; }
+
+function buildInvBadge(invHex, invText) {
+  var tl=(invText||'').toLowerCase();
+  if(tl==='in stock')         return "<span class='inv-badge' style='background:#1e9e4e;color:#fff'>"+invText+"</span>";
+  else if(tl==='low stock')   return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
+  else if(tl==='no stock')    return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
+  else if(tl==='shop closed') return "<span class='inv-badge' style='background:#e94560;color:#fff'>"+invText+"</span>";
+  else if(invText)            return "<span class='inv-badge' style='background:#444;color:#aaa'>"+invText+"</span>";
+  else                        return '';
+}
+
+// ── BUILD CARD ────────────────────────────────────────────────
+function buildCardHTML(group, si) {
+  var r=group[si]||group[0];
+  var name=String(r[COL.creature]||'Unknown').trim();
+  var variant=String(r[COL.variant]||'').trim();
+  var invHex=String(r._inventoryHex||'#ffffff'), invText=String(r._inventoryText||'').trim();
+  var tagKey=String(r[COL.statsTag]||'').trim();
+  var statsEntry=statsMap[tagKey]||null;
+  var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
+  var level=levelRaw!==null?(levelRaw+1):'?';
+  var isItem=variant.indexOf('Item -')===0;
+  var amtAvail=Number(r[COL.amountAvailable]||0)||0;
+  var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
+  var nameStyle='';
+  var resMult=isItem?1:2;
+  var invBadge=buildInvBadge(invHex,invText);
+
+  // Variant bar
+  var varOpts=group.map(function(v,i){
+    var rawLabel=String(v[COL.variant]||'No variant');
+    var vLabel=rawLabel.replace(/^aberrant\s*[-–—]\s*/i,'').trim()||rawLabel;
+    var o=document.createElement('option'); o.value=String(i); o.textContent=vLabel; o.selected=(i===si); return o.outerHTML;
+  }).join('');
+  var variantBarHtml='';
+  if(group.length>1){
+    variantBarHtml="<div class='sel-bar variant'><label>Current Variants Available: <span class='var-count'>"+group.length+"</span></label><select onchange='switchVariant(this)'>"+varOpts+"</select></div>";
+  } else {
+    var rawSingle=String(group[0][COL.variant]||'').trim();
+    var singleVariant=rawSingle.replace(/^aberrant\s*[-–—]\s*/i,'').trim()||rawSingle;
+    if(singleVariant) variantBarHtml="<div class='sel-bar variant'><label>Current Variants Available: <span class='var-count'>1</span></label><div style='padding:6px 10px;font-size:13px'>"+singleVariant+"</div></div>";
+  }
+
+  // Resources
+  var resHtml=RESOURCES.map(function(rc){
+    var rawVal=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
+    var display=rawVal===0?'-':String(rawVal*resMult);
+    var cls=rawVal>0?' hv':'';
+    return "<div class='res-item'><div class='res-label'>"+rc.label+"</div><div class='res-value"+cls+"' data-raw='"+rawVal+"'>"+display+"</div></div>";
+  }).join('');
+
+  // Colour IDs
+  var cidHtml='';
+  if(statsEntry&&statsEntry.colourIds){
+    var cids=statsEntry.colourIds;
+    var cidGrid=COLOUR_ID_COLS.map(function(key,i){ return "<div class='cid-item'><div class='cid-label'>C"+i+"</div><div class='cid-value'>"+(cids[key]||'-')+"</div></div>"; }).join('');
+    cidHtml="<div class='colour-id-bar'><label>Colour IDs</label><div class='colour-id-grid'>"+cidGrid+"</div></div>";
+  }
+
+  // Stats
+  var statsHtml='';
+  if(statsEntry&&statsEntry.tiles&&statsEntry.tiles.length){
+    var tileHtml=statsEntry.tiles.map(function(tile){
+      var v1=tile.v1||'-';
+      if(tile.v2!==null&&tile.v2!==undefined){
+        var v2raw=tile.v2||'-';
+        var v2=tile.label==='Damage'&&v2raw!=='-'?(Math.round(parseFloat(v2raw)*100)+'%'):v2raw;
+        return "<div class='stat-item'><div class='stat-header'><span class='stat-name'>"+tile.label+"</span><span class='stat-hsep'>:</span><span class='stat-v1'>"+v1+"</span></div><div class='stat-value-row'>Value: <span class='stat-val'>"+v2+"</span></div></div>";
+      }
+      return "<div class='stat-item'><div class='stat-header'><span class='stat-name'>"+tile.label+"</span></div><div class='stat-value-row'>Value: <span class='stat-val'>"+v1+"</span></div></div>";
+    }).join('');
+    statsHtml="<div class='section-title'>Stats</div><div class='stats-grid'>"+tileHtml+"</div>";
+  }
+
+  // Image
+  var manualUrl=driveUrl(String(r[COL.imageUrl]||'').trim());
+  var imgContent=manualUrl?"<img src='"+manualUrl+"' alt='"+name+"'>":"<div class='img-placeholder'><svg viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1.5'><path d='M4 16l4-4 4 4 4-6 4 6'/><rect x='2' y='4' width='20' height='16' rx='2'/></svg>No image</div>";
+  var imgDiv="<div class='card-img'>"+imgContent+"</div>";
+
+  // Assemble
+  var parts=[];
+  parts.push("<div class='card-header'><span class='level-badge'>"+(isItem?'Item':'Lvl '+level)+"</span><div class='card-name' style='"+nameStyle+"'>"+name+"</div>"+invBadge+"</div>");
+  parts.push(imgDiv);
+  if(variantBarHtml) parts.push(variantBarHtml);
+  var infoText=String(r[COL.info]||'').trim();
+  if(infoText) parts.push("<div class='info-bar'><div class='info-text'>"+infoText+"</div></div>");
+  if(statsHtml) parts.push(statsHtml);
+  if(cidHtml) parts.push(cidHtml);
+  parts.push("<div class='card-body'><div class='section-title'>Resources</div><div class='res-grid'>"+resHtml+"</div></div>");
+  var genderBar="<div class='sel-bar gender' style='"+(isItem?'display:none':'')+"'><label>Single or Pairs?</label><select class='gender-sel' onchange='onGenderChange(this)'><option>Male</option><option>Female</option><option selected>Pair x2</option><option>Pair x2 +1 Female</option></select></div>";
+  parts.push(genderBar);
+  if(isItem){
+    var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
+    parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOpts||'<option>0</option>')+"</select></div>");
+  }
+  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket')+"</button>");
+  return parts.join('');
+}
+
+function wireCardImages(card) {
+  card.querySelectorAll('.card-img img').forEach(function(img){
+    img.addEventListener('load',function(){ img.classList.add('loaded'); });
+    img.addEventListener('error',function(){ img.classList.add('errored'); var ph=img.parentElement.querySelector('.img-placeholder'); if(ph) ph.style.display='flex'; });
+    if(img.complete&&img.naturalWidth>0) img.classList.add('loaded');
+  });
+}
+
+function switchVariant(sel){
+  var card=sel.closest('.card');
+  var group=JSON.parse(card.dataset.group);
+  updateCardSections(card,group,Number(sel.value));
+}
+
+function updateCardSections(card,group,si){
+  var r=group[si]||group[0];
+  var invHex=String(r._inventoryHex||'#ffffff'), invText=String(r._inventoryText||'').trim();
+  var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
+  var tagKey=String(r[COL.statsTag]||'').trim();
+  var statsEntry=statsMap[tagKey]||null;
+  var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
+  var level=levelRaw!==null?(levelRaw+1):'?';
+  var variant=String(r[COL.variant]||'').trim();
+  var isItem=variant.indexOf('Item -')===0;
+  var amtAvail=Number(r[COL.amountAvailable]||0)||0;
+
+  // Update header badge
+  var hdr=card.querySelector('.card-header');
+  if(hdr){ var eb=hdr.querySelector('.inv-badge'); if(eb) eb.outerHTML=buildInvBadge(invHex,invText); }
+  var lvlEl=card.querySelector('.level-badge');
+  if(lvlEl) lvlEl.textContent=isItem?'Item':('Lvl '+level);
+
+  // Update add button
+  var addBtn=card.querySelector('.add-btn');
+  if(addBtn){
+    if(noStock){ addBtn.classList.add('no-stock'); addBtn.textContent='No Stock'; addBtn.onclick=null; }
+    else { addBtn.classList.remove('no-stock'); addBtn.textContent='Add to Basket'; addBtn.onclick=function(){ addToBasket(addBtn); }; }
+  }
+
+  // Update info bar
+  var infoText=String(r[COL.info]||'').trim();
+  var infoBar=card.querySelector('.info-bar');
+  if(infoBar){ infoBar.style.display=infoText?'':'none'; if(infoText){ var it=infoBar.querySelector('.info-text'); if(it) it.textContent=infoText; } }
+
+  // Update resources
+  var genSelU=card.querySelector('.gender-sel'), qtySelU=card.querySelector('.qty-sel');
+  var resMult=1;
+  if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
+  else { resMult=genSelU&&genSelU.value==='Pair x2'?2:genSelU&&genSelU.value==='Pair x2 +1 Female'?3:1; }
+  RESOURCES.forEach(function(rc){
+    var rawVal=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
+    var el=card.querySelector('.res-value[data-raw]');
+    // find by label
+  });
+  card.querySelectorAll('.res-value[data-raw]').forEach(function(el,idx){
+    var raw=parseFloat(el.dataset.raw)||0;
+    el.textContent=raw===0?'-':String(raw*resMult);
+  });
+
+  // Update image
+  var manualUrl=driveUrl(String(r[COL.imageUrl]||'').trim());
+  var imgEl=card.querySelector('.card-img img');
+  if(imgEl){
+    imgEl.classList.remove('loaded','errored');
+    if(manualUrl){ imgEl.src=manualUrl; imgEl.alt=String(r[COL.creature]||''); }
+    else { imgEl.src=''; imgEl.classList.add('errored'); }
+  }
+
+  // Update colour IDs
+  if(statsEntry&&statsEntry.colourIds){
+    var cidBar=card.querySelector('.colour-id-bar');
+    if(cidBar){
+      var cidGrid=cidBar.querySelector('.colour-id-grid');
+      if(cidGrid){ cidGrid.innerHTML=COLOUR_ID_COLS.map(function(key,i){ return "<div class='cid-item'><div class='cid-label'>C"+i+"</div><div class='cid-value'>"+(statsEntry.colourIds[key]||'-')+"</div></div>"; }).join(''); }
+    }
+  }
+}
+
+function updateResources(card,mult){
+  card.querySelectorAll('.res-value[data-raw]').forEach(function(el){
+    var raw=parseFloat(el.dataset.raw)||0;
+    el.textContent=raw===0?'-':String(raw*mult);
+  });
+}
+
+function onGenderChange(sel){
+  var card=sel.closest('.card');
+  var btn=card.querySelector('.add-btn');
+  var mult=sel.value==='Pair x2'?2:sel.value==='Pair x2 +1 Female'?3:1;
+  var full=slotsUsed()+mult>BASKET_LIMIT;
+  if(!btn.classList.contains('no-stock')){ btn.disabled=full; btn.textContent=full?'Basket Full':'Add to Basket'; }
+  updateResources(card,mult);
+}
+
+function onQtyChange(sel){
+  var card=sel.closest('.card');
+  var qty=Number(sel.value)||1;
+  updateResources(card,qty);
+}
+
+// ── BASKET ────────────────────────────────────────────────────
+function slotsUsed(){ return basket.reduce(function(t,i){ return t+(Number(i.slots)||1); },0); }
+function updateCount(){
+  document.getElementById('basketCount').textContent=basket.length;
+  var obc=document.getElementById('overlayBasketCount'); if(obc) obc.textContent=basket.length;
+  document.getElementById('basketSlots').textContent=slotsUsed()+' / '+BASKET_LIMIT+' slots used';
+}
+
+function addToBasket(btn){
+  var card=btn.closest('.card');
+  var group=JSON.parse(card.dataset.group);
+  var varSel=card.querySelector('.sel-bar.variant select');
+  var si=varSel?Number(varSel.value):0;
+  var r=group[si]||group[0];
+  var tagKey=String(r[COL.statsTag]||'').trim();
+  var statsEntry=statsMap[tagKey]||null;
+  var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
+  var level=levelRaw!==null?(levelRaw+1):'?';
+  var name=String(r[COL.creature]||'Unknown').trim();
+  var variant=String(r[COL.variant]||'').trim().replace(/^aberrant\s*[-–—]\s*/i,'');
+  var isItem=variant.indexOf('Item -')===0;
+  var genSel=card.querySelector('.gender-sel');
+  var qtySel=card.querySelector('.qty-sel');
+  var gender='Pair x2', needed=2;
+  if(isItem){ gender='Item'; needed=qtySel?Number(qtySel.value)||1:1; }
+  else { gender=genSel?genSel.value:'Pair x2'; needed=gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
+  if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
+  var item={creature:name,level:level,variant:variant,gender:gender,slots:needed};
+  var isTribeBasket=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
+  RESOURCES.forEach(function(rc){
+    var raw=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
+    if(!isItem){
+      if(rc.key==='tek'){
+        if(gender==='Male'||gender==='Female') item[rc.key]=isTribeBasket?100:150;
+        else if(gender==='Pair x2') item[rc.key]=isTribeBasket?200:300;
+        else if(gender==='Pair x2 +1 Female') item[rc.key]=isTribeBasket?300:400;
+        else item[rc.key]=raw*needed;
+      } else {
+        item[rc.key]=isTribeBasket?Math.round(raw*needed*(2/3)):raw*needed;
+      }
+    } else {
+      item[rc.key]=raw*needed;
+    }
+  });
+  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown(); openBasket();
+}
+
+function removeItem(i){ basket.splice(i,1); updateCount(); renderBasket(); rebuildPaymentDropdown(); }
+
+function renderBasket(){
+  var el=document.getElementById('basketItems');
+  if(!basket.length){ el.innerHTML="<p class='basket-empty'>Your basket is empty.</p>"; return; }
+  el.innerHTML=basket.map(function(it,i){
+    return "<div class='basket-item'><button class='bi-remove' onclick='removeItem("+i+")'>&#x2715;</button>"
+      +"<div class='bi-name'>"+it.creature+"</div>"
+      +"<div class='bi-detail'>Lvl "+it.level+" · "+it.variant+" · "+it.gender+"</div>"
+      +"</div>";
+  }).join('');
+}
+
+function rebuildPaymentDropdown(){
+  var payRow=document.getElementById('paymentRow'), sumRow=document.getElementById('orderSummary'), sel=document.getElementById('paymentSelect');
+  if(!basket.length){ payRow.style.display='none'; sumRow.style.display='none'; return; }
+  var prev=sel.value; sel.innerHTML='';
+  var avail=RESOURCES.filter(function(rc){ return basket.some(function(it){ return (it[rc.key]||0)>0; }); });
+  avail.forEach(function(rc){ var o=document.createElement('option'); o.value=rc.key; o.textContent=rc.label; sel.appendChild(o); });
+  if(prev&&avail.some(function(rc){ return rc.key===prev; })) sel.value=prev;
+  else if(avail.some(function(rc){ return rc.key==='tek'; })) sel.value='tek';
+  payRow.style.display=avail.length?'flex':'none';
+  renderSummary();
+}
+
+function renderSummary(){
+  var sumRow=document.getElementById('orderSummary'), sel=document.getElementById('paymentSelect');
+  if(!basket.length||!sel.value){ sumRow.style.display='none'; return; }
+  var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
+  var isTribe=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
+  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'; }).length;
+  var bundles=Math.floor(pairCount/3);
+  var bundlePrice=isTribe?500:750;
+  var singlePairPrice=isTribe?200:300;
+  var rows=basket.map(function(it){
+    var v=it[key]||0;
+    return "<div class='os-row'><span>"+it.creature+" (Lvl "+it.level+" "+it.gender+")</span><span>"+(v>0?v+' '+label:'—')+"</span></div>";
+  }).join('');
+  var tekTotal=basket.reduce(function(t,it){return t+(it.tek||0);},0);
+  var thisTotal=basket.reduce(function(t,it){return t+(it[key]||0);},0);
+  var ratio=tekTotal>0?thisTotal/tekTotal:1;
+  var total=0;
+  var bundleLines='';
+  if(bundles>0){
+    var bundledPairs=bundles*3;
+    var remainderPairs=pairCount-bundledPairs;
+    basket.forEach(function(it){ if(it.gender!=='Pair x2') total+=it[key]||0; });
+    var bundlePriceScaled=Math.round(bundlePrice*ratio);
+    var singlePairScaled=Math.round(singlePairPrice*ratio);
+    total+=bundles*bundlePriceScaled+remainderPairs*singlePairScaled;
+    bundleLines="<div class='os-row os-saving'><span>3 pairs for "+bundlePriceScaled+" x"+bundles+"</span><span>"+(bundles*bundlePriceScaled)+' '+label+"</span></div>";
+  } else {
+    total=thisTotal;
+  }
+  sumRow.innerHTML=rows+bundleLines+"<div class='os-row os-total'><span>Total</span><span>"+(total>0?total+' '+label:'—')+"</span></div>";
+  sumRow.style.display='flex';
+}
+
+function openBasket(){ document.getElementById('basketOverlay').classList.add('open'); document.getElementById('basketPanel').classList.add('open'); }
+function closeBasket(){ document.getElementById('basketOverlay').classList.remove('open'); document.getElementById('basketPanel').classList.remove('open'); }
+
+// ── ORDER SUBMISSION (via GAS) ────────────────────────────────
+function placeOrder(){
+  var name=document.getElementById('custName').value.trim();
+  var discord=document.getElementById('custDiscord').value.trim();
+  var notes=document.getElementById('custNotes').value.trim();
+  var sel=document.getElementById('paymentSelect');
+  var msg=document.getElementById('formMsg');
+  var isTribe=document.getElementById('tribeCheck').checked;
+  var tribeName=isTribe?document.getElementById('tribeName').value.trim():'';
+  if(!basket.length){ msg.className='form-msg err'; msg.textContent='Your basket is empty.'; return; }
+  if(!name){ msg.className='form-msg err'; msg.textContent='Please enter your name.'; return; }
+  if(!discord){ msg.className='form-msg err'; msg.textContent='Please enter your Discord username.'; return; }
+  if(isTribe&&!tribeName){ msg.className='form-msg err'; msg.textContent='Please enter your tribe name.'; return; }
+  if(!sel.value){ msg.className='form-msg err'; msg.textContent='Please select a payment method.'; return; }
+  document.getElementById('checkoutBtn').disabled=true;
+  msg.className='form-msg'; msg.textContent='Placing order...';
+  var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
+  var total=basket.reduce(function(t,it){ return t+(it[key]||0); },0);
+  var saving=isTribe?getTribeDiscount(total):0;
+  var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
+  var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
+  fetch(GAS_URL+'?action=submitOrder', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items})
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if(res.success){
+      msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
+      basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
+      document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
+      document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
+      document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
+    } else { msg.className='form-msg err'; msg.textContent='Error: '+res.error; }
+    document.getElementById('checkoutBtn').disabled=false;
+  })
+  .catch(function(err){ msg.className='form-msg err'; msg.textContent='Failed: '+err.message; document.getElementById('checkoutBtn').disabled=false; });
+}
+
+// ── MOBILE OVERLAY ────────────────────────────────────────────
+function openOverlay(gi){ overlayIdx=gi; renderOverlay(); document.getElementById('cardOverlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeOverlay(){ document.getElementById('cardOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function overlayNav(dir){ var filtered=getFiltered(); overlayIdx=Math.max(0,Math.min(filtered.length-1,overlayIdx+dir)); renderOverlay(); }
+function renderOverlay(){
+  var filtered=getFiltered();
+  if(!filtered.length) return;
+  var group=filtered[overlayIdx];
+  var tmp=document.createElement('div');
+  tmp.className='card';
+  tmp.style.cssText='border-radius:0;border:none;min-height:100%;background:#1a1a2e;width:100%;max-width:100%';
+  tmp.dataset.group=JSON.stringify(group);
+  tmp.dataset.gi=String(overlayIdx);
+  tmp.innerHTML=buildCardHTML(group,0);
+  wireCardImages(tmp);
+  var content=document.getElementById('overlayContent');
+  content.innerHTML=''; content.appendChild(tmp); content.scrollTop=0;
+  document.getElementById('overlayPos').textContent=(overlayIdx+1)+' / '+filtered.length;
+  document.getElementById('overlayPrev').disabled=(overlayIdx===0);
+  document.getElementById('overlayNext').disabled=(overlayIdx===filtered.length-1);
+}
+
+// ── EVENT LISTENERS ───────────────────────────────────────────
+window.addEventListener('load', function() {
+  // Landing buttons
+  document.querySelectorAll('.cat-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var type = btn.dataset.type !== undefined ? btn.dataset.type : '';
+      enterShop(type);
+    });
+  });
+  document.getElementById('btn-all').addEventListener('click', function() { enterShop(''); });
+
+  // Shop controls
+  document.getElementById('backBtn').addEventListener('click', goBack);
+  document.getElementById('basketOpenBtn').addEventListener('click', openBasket);
+  document.getElementById('overlayBasketBtn').addEventListener('click', openBasket);
+  document.getElementById('basketCloseBtn').addEventListener('click', closeBasket);
+  document.getElementById('basketOverlay').addEventListener('click', closeBasket);
+  document.getElementById('overlayClose').addEventListener('click', closeOverlay);
+  document.getElementById('overlayPrev').addEventListener('click', function(){ overlayNav(-1); });
+  document.getElementById('overlayNext').addEventListener('click', function(){ overlayNav(1); });
+  document.getElementById('sidebarToggle').addEventListener('click', function(){ document.getElementById('sidebar').classList.toggle('closed'); });
+  document.getElementById('checkoutBtn').addEventListener('click', placeOrder);
+  document.getElementById('tribeCheck').addEventListener('change', function(){
+    document.getElementById('tribeNameRow').style.display=this.checked?'flex':'none';
+    renderSummary();
+  });
+  document.getElementById('tribeName').addEventListener('input', renderSummary);
+  document.getElementById('search').addEventListener('input', applyFilters);
+  document.getElementById('typeFilter').addEventListener('change', applyFilters);
+  document.getElementById('creatureFilter').addEventListener('change', applyFilters);
+  document.getElementById('variantFilter').addEventListener('change', applyFilters);
+  document.getElementById('paymentSelect').addEventListener('change', renderSummary);
+
+  // Swipe
+  var sx=0, sy=0;
+  document.getElementById('overlayContent').addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; },{passive:true});
+  document.getElementById('overlayContent').addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-sx, dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50) overlayNav(dx<0?1:-1);
+  },{passive:true});
+
+  // Load data
+  loadData();
+});
+</script>
+</body>
+</html>
