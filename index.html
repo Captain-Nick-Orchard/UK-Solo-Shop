@@ -37,7 +37,7 @@ body.in-shop .shop{display:flex}
 .back-btn:hover{border-color:#e94560;color:#fff}
 .basket-btn{background:#e94560;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .basket-btn:hover{background:#c73652}
-.basket-count{background:#fff;color:#e94560;border-radius:50%;width:20px;height:20px;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.basket-count{background:#fff;color:#e94560;border-radius:20px;min-width:28px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
 /* ── Controls ── */
 .controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19}
@@ -146,8 +146,8 @@ select option{background:#16213e}
 .bi-name{font-weight:600;font-size:14px;color:#fff;padding-right:24px}
 .bi-detail{font-size:12px;color:#aaa}
 .bi-cost{font-size:12px;color:#e94560;font-weight:600}
-.bi-remove{position:absolute;top:10px;right:10px;background:none;border:none;color:#555;font-size:18px;cursor:pointer;line-height:1;padding:0}
-.bi-remove:hover{color:#e94560}
+.bi-remove{position:absolute;top:8px;right:8px;background:#e94560;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;line-height:1;padding:3px 7px;border-radius:6px}
+.bi-remove:hover{background:#c73652}
 .checkout-form{padding:1rem 1.5rem;border-top:1px solid #0f3460;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
 .checkout-form h3{font-size:14px;font-weight:600;color:#e0e0e0}
 .form-row{display:flex;flex-direction:column;gap:4px}
@@ -594,7 +594,15 @@ function buildCardHTML(group, si) {
   if(statsHtml) parts.push(statsHtml);
   if(cidHtml) parts.push(cidHtml);
   parts.push("<div class='card-body'><div class='section-title'>Resources</div><div class='res-grid'>"+resHtml+"</div></div>");
-  var genderBar="<div class='sel-bar gender' style='"+(isItem?'display:none':'')+"'><label>Single or Pairs?</label><select class='gender-sel' onchange='onGenderChange(this)'><option>Male</option><option>Female</option><option selected>Pair x2</option><option>Pair x2 +1 Female</option></select></div>";
+  var typeVal=String(r[COL.type]||'').toLowerCase();
+  var isSingleClone=typeVal.indexOf('single clone')!==-1;
+  var genderBar;
+  if(isSingleClone){
+    var scOpts='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>';
+    genderBar="<div class='sel-bar gender'><label>Quantity</label><select class='gender-sel' onchange='onGenderChange(this)'>"+scOpts+"</select></div>";
+  } else {
+    genderBar="<div class='sel-bar gender' style='"+(isItem?'display:none':'')+"'><label>Single or Pairs?</label><select class='gender-sel' onchange='onGenderChange(this)'><option>Male</option><option>Female</option><option selected>Pair x2</option><option>Pair x2 +1 Female</option></select></div>";
+  }
   parts.push(genderBar);
   if(isItem){
     var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
@@ -652,7 +660,7 @@ function updateCardSections(card,group,si){
   var genSelU=card.querySelector('.gender-sel'), qtySelU=card.querySelector('.qty-sel');
   var resMult=1;
   if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
-  else { resMult=genSelU&&genSelU.value==='Pair x2'?2:genSelU&&genSelU.value==='Pair x2 +1 Female'?3:1; }
+  else { var gv=genSelU?genSelU.value:''; var scN=!isNaN(Number(gv))&&Number(gv)>0; resMult=scN?Number(gv):gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
   RESOURCES.forEach(function(rc){
     var rawVal=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
     var el=card.querySelector('.res-value[data-raw]');
@@ -692,7 +700,8 @@ function updateResources(card,mult){
 function onGenderChange(sel){
   var card=sel.closest('.card');
   var btn=card.querySelector('.add-btn');
-  var mult=sel.value==='Pair x2'?2:sel.value==='Pair x2 +1 Female'?3:1;
+  var isSC=!isNaN(Number(sel.value))&&Number(sel.value)>0;
+  var mult=isSC?Number(sel.value):sel.value==='Pair x2'?2:sel.value==='Pair x2 +1 Female'?3:1;
   var full=slotsUsed()+mult>BASKET_LIMIT;
   if(!btn.classList.contains('no-stock')){ btn.disabled=full; btn.textContent=full?'Basket Full':'Add to Basket'; }
   updateResources(card,mult);
@@ -707,7 +716,8 @@ function onQtyChange(sel){
 // ── BASKET ────────────────────────────────────────────────────
 function slotsUsed(){ return basket.reduce(function(t,i){ return t+(Number(i.slots)||1); },0); }
 function updateCount(){
-  document.getElementById('basketCount').textContent=basket.length;
+  var used=slotsUsed();
+  document.getElementById('basketCount').textContent=used+'/'+BASKET_LIMIT;
   var obc=document.getElementById('overlayBasketCount'); if(obc) obc.textContent=basket.length;
   document.getElementById('basketSlots').textContent=slotsUsed()+' / '+BASKET_LIMIT+' slots used';
 }
@@ -729,14 +739,15 @@ function addToBasket(btn){
   var qtySel=card.querySelector('.qty-sel');
   var gender='Pair x2', needed=2;
   if(isItem){ gender='Item'; needed=qtySel?Number(qtySel.value)||1:1; }
-  else { gender=genSel?genSel.value:'Pair x2'; needed=gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
+  else { gender=genSel?genSel.value:'Pair x2'; var scQty=!isNaN(Number(gender))&&Number(gender)>0; needed=scQty?Number(gender):gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
   if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
   var item={creature:name,level:level,variant:variant,gender:gender,slots:needed};
   var isTribeBasket=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
   RESOURCES.forEach(function(rc){
     var raw=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
     if(!isItem){
-      if(rc.key==='tek'){
+      var scQ=!isNaN(Number(gender))&&Number(gender)>0;
+      if(rc.key==='tek'&&!scQ){
         if(gender==='Male'||gender==='Female') item[rc.key]=isTribeBasket?100:150;
         else if(gender==='Pair x2') item[rc.key]=isTribeBasket?200:300;
         else if(gender==='Pair x2 +1 Female') item[rc.key]=isTribeBasket?300:400;
@@ -781,31 +792,48 @@ function renderSummary(){
   if(!basket.length||!sel.value){ sumRow.style.display='none'; return; }
   var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
   var isTribe=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
+  function liveTek(it){
+    var g=it.gender;
+    if(!isNaN(Number(g))&&Number(g)>0) return it.tek||0;
+    if(g==='Male'||g==='Female') return isTribe?100:150;
+    if(g==='Pair x2') return isTribe?200:300;
+    if(g==='Pair x2 +1 Female') return isTribe?300:400;
+    return it.tek||0;
+  }
+  function liveVal(it){
+    if(key!=='tek'){ var tk=it.tek||0; var ltk=liveTek(it); var r2=tk>0?ltk/tk:1; return Math.round((it[key]||0)*r2); }
+    return liveTek(it);
+  }
   var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'; }).length;
   var bundles=Math.floor(pairCount/3);
   var bundlePrice=isTribe?500:750;
   var singlePairPrice=isTribe?200:300;
-  var rows=basket.map(function(it){
-    var v=it[key]||0;
-    return "<div class='os-row'><span>"+it.creature+" (Lvl "+it.level+" "+it.gender+")</span><span>"+(v>0?v+' '+label:'—')+"</span></div>";
-  }).join('');
-  var tekTotal=basket.reduce(function(t,it){return t+(it.tek||0);},0);
-  var thisTotal=basket.reduce(function(t,it){return t+(it[key]||0);},0);
-  var ratio=tekTotal>0?thisTotal/tekTotal:1;
-  var total=0;
-  var bundleLines='';
-  if(bundles>0){
-    var bundledPairs=bundles*3;
-    var remainderPairs=pairCount-bundledPairs;
-    basket.forEach(function(it){ if(it.gender!=='Pair x2') total+=it[key]||0; });
-    var bundlePriceScaled=Math.round(bundlePrice*ratio);
-    var singlePairScaled=Math.round(singlePairPrice*ratio);
-    total+=bundles*bundlePriceScaled+remainderPairs*singlePairScaled;
-    bundleLines="<div class='os-row os-saving'><span>3 pairs for "+bundlePriceScaled+" x"+bundles+"</span><span>"+(bundles*bundlePriceScaled)+' '+label+"</span></div>";
-  } else {
-    total=thisTotal;
+  var tekTotal=basket.reduce(function(t,it){return t+liveTek(it);},0);
+  var ratio=tekTotal>0?basket.reduce(function(t,it){return t+liveVal(it);},0)/tekTotal:1;
+  var bundlePriceScaled=Math.round(bundlePrice*ratio);
+  var singlePairScaled=Math.round(singlePairPrice*ratio);
+  var pairIdxs=[];
+  basket.forEach(function(it,i){ if(it.gender==='Pair x2') pairIdxs.push(i); });
+  var bundledIdxs=pairIdxs.slice(0,bundles*3);
+  var summaryHtml='', total=0;
+  basket.forEach(function(it,i){
+    if(bundledIdxs.indexOf(i)!==-1) return;
+    var v=it.gender==='Pair x2'?singlePairScaled:liveVal(it);
+    total+=v;
+    summaryHtml+="<div class='os-row'><span>"+it.creature+" (Lvl "+it.level+" · "+it.gender+")</span>";
+    summaryHtml+="<span style='display:flex;align-items:center;gap:6px'>"+(v>0?v+' '+label:'—')+"<button onclick='removeItem("+i+")' style='background:#e94560;border:none;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer'>&times;</button></span></div>";
+  });
+  for(var b=0;b<bundles;b++){
+    var bIdxs=bundledIdxs.slice(b*3,(b+1)*3);
+    summaryHtml+="<div class='os-row os-saving'><span style='font-weight:700'>Bundle "+(b+1)+" — 3 pairs for "+bundlePriceScaled+" "+label+":</span></div>";
+    bIdxs.forEach(function(idx){
+      var it=basket[idx];
+      summaryHtml+="<div class='os-row' style='padding-left:14px'><span>"+it.creature+" (Lvl "+it.level+")</span>";
+      summaryHtml+="<button onclick='removeItem("+idx+")' style='background:#e94560;border:none;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer'>&times;</button></div>";
+    });
+    total+=bundlePriceScaled;
   }
-  sumRow.innerHTML=rows+bundleLines+"<div class='os-row os-total'><span>Total</span><span>"+(total>0?total+' '+label:'—')+"</span></div>";
+  sumRow.innerHTML=summaryHtml+"<div class='os-row os-total'><span>Total</span><span>"+(total>0?total+' '+label:'—')+"</span></div>";
   sumRow.style.display='flex';
 }
 
