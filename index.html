@@ -910,22 +910,21 @@ function placeOrder(){
   var saving=isTribe?getTribeDiscount(total):0;
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
-  fetch(GAS_URL, {
-    method:'POST',
-    body:JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName})
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(res){
-    if(res.success){
-      msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
-      basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
-      document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
-      document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
-      document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
-    } else { msg.className='form-msg err'; msg.textContent='Error: '+res.error; }
+  var payload = {customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName};
+  fetch(GAS_URL+'?data='+encodeURIComponent(JSON.stringify(payload)), {
+    method:'GET',
+    mode:'no-cors'
+  }).then(function(){
+    msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
+    basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
+    document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
+    document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
+    document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  })
-  .catch(function(err){ msg.className='form-msg err'; msg.textContent='Failed: '+err.message; document.getElementById('checkoutBtn').disabled=false; });
+  }).catch(function(err){
+    msg.className='form-msg err'; msg.textContent='Failed: '+err.message;
+    document.getElementById('checkoutBtn').disabled=false;
+  });
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
