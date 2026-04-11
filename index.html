@@ -243,12 +243,12 @@ select option{background:#16213e}
     <h3>Checkout</h3>
     <div class="form-row"><label>Your Name</label><input id="custName" type="text" placeholder="e.g. TribeLeader99"></div>
     <div class="form-row"><label>Discord Username</label><input id="custDiscord" type="text" placeholder="e.g. username#1234"></div>
+    <div id="paymentRow" class="form-row" style="display:none"><label>Payment Method</label><select id="paymentSelect"></select></div>
+    <div id="orderSummary" style="display:none" class="order-summary"></div>
     <div class="tribe-row">
       <label><input type="checkbox" id="tribeCheck"> On Server Discount <span class="discount-badge">35% off</span></label>
     </div>
     <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name</label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
-    <div id="paymentRow" class="form-row" style="display:none"><label>Payment Method</label><select id="paymentSelect"></select></div>
-    <div id="orderSummary" style="display:none" class="order-summary"></div>
     <div class="form-row"><label>Notes (optional)</label><textarea id="custNotes" placeholder="Any special requests..."></textarea></div>
     <p class="form-msg" id="formMsg"></p>
     <button class="checkout-btn" id="checkoutBtn">Place Order</button>
