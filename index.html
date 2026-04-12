@@ -56,7 +56,8 @@ select option{background:#16213e}
 
 /* ── Shop body + sidebar ── */
 .shop-body{display:flex;flex:1;min-height:0}
-.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:114px;height:calc(100vh - 114px)}
+.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:114px;height:calc(100vh - 114px);scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
+.sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:#0f3460;border-radius:4px}.sidebar::-webkit-scrollbar-thumb:hover{background:#e94560}
 @media(max-width:768px){.sidebar{width:0;overflow:hidden}}
 @media(max-width:768px){.sidebar.open{width:200px;overflow-y:auto}}
 .sidebar.closed{width:0;overflow:hidden}
@@ -931,7 +932,6 @@ function placeOrder(){
   msg.className='form-msg'; msg.textContent='Placing order...';
   var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
   var total=basket.reduce(function(t,it){ return t+(it[key]||0); },0);
-  var saving=isTribe?getTribeDiscount(total):0;
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
