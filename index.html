@@ -598,7 +598,8 @@ function buildCardHTML(group, si) {
   var varOpts=group.map(function(v,i){
     var rawLabel=String(v[COL.variant]||'No variant');
     var vLabel=rawLabel.replace(/^aberrant\s*[-–—]\s*/i,'').trim()||rawLabel;
-    var o=document.createElement('option'); o.value=String(i); o.textContent=vLabel; o.selected=(i===si); return o.outerHTML;
+    var selAttr=i===si?' selected':'';
+    return '<option value="'+i+'"'+selAttr+'>'+vLabel+'</option>';
   }).join('');
   var variantBarHtml='';
   if(group.length>1){
