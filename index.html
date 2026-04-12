@@ -945,17 +945,36 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||''}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  // Use image tag — guaranteed cross-origin, no CORS, no redirect issues
-  var img = new Image();
-  img.onload = img.onerror = function(){
+  // Submit via hidden iframe form — bypasses CORS completely
+  var iframe = document.createElement('iframe');
+  iframe.name = 'orderTarget';
+  iframe.style.display = 'none';
+  document.body.appendChild(iframe);
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = GAS_URL;
+  form.target = 'orderTarget';
+  form.style.display = 'none';
+  var input = document.createElement('input');
+  input.type = 'hidden';
+  input.name = 'data';
+  input.value = payload;
+  form.appendChild(input);
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(function(){
+    document.body.removeChild(form);
+    document.body.removeChild(iframe);
+  }, 5000);
+  // Show success after short delay
+  setTimeout(function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
     document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
     document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  };
-  img.src = GAS_URL + '?action=order&data=' + encodeURIComponent(payload);
+  }, 2000);
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
