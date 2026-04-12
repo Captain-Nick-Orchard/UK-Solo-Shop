@@ -154,7 +154,8 @@ select option{background:#16213e}
 .bi-cost{font-size:12px;color:#e94560;font-weight:600}
 .bi-remove{position:absolute;top:8px;right:8px;background:#e94560;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;line-height:1;padding:3px 7px;border-radius:6px}
 .bi-remove:hover{background:#c73652}
-.checkout-form{padding:1rem 1.5rem;border-top:1px solid #0f3460;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+.checkout-form{padding:1rem 1.5rem;border-top:1px solid #0f3460;display:flex;flex-direction:column;gap:10px;overflow-y:auto;flex:1}
+.checkout-form-fields{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
 .checkout-form h3{font-size:14px;font-weight:600;color:#e0e0e0}
 .form-row{display:flex;flex-direction:column;gap:4px}
 .form-row label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.6px}
@@ -252,6 +253,7 @@ select option{background:#16213e}
   </div>
   <div class="basket-items" id="basketItems"><p class="basket-empty">Your basket is empty.</p></div>
   <div class="checkout-form">
+    <div class="checkout-form-fields">
     <h3>Checkout</h3>
     <div class="form-row"><label>Your Name</label><input id="custName" type="text" placeholder="e.g. TribeLeader99"></div>
     <div class="form-row"><label>Discord Username</label><input id="custDiscord" type="text" placeholder="e.g. username#1234"></div>
@@ -263,8 +265,9 @@ select option{background:#16213e}
     <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name</label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
     <div class="form-row"><label>Notes (optional)</label><textarea id="custNotes" placeholder="Any special requests..."></textarea></div>
     <p class="form-msg" id="formMsg"></p>
+    </div>
   </div>
-  <div class="checkout-btn-wrap">
+  <div class="checkout-btn-wrap" style="padding:0 1.5rem 1rem;flex-shrink:0">
     <button class="checkout-btn" id="checkoutBtn">Place Order</button>
   </div>
 </div>
