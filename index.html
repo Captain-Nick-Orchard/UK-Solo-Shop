@@ -945,22 +945,17 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||''}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  fetch(ORDER_URL + '?data=' + encodeURIComponent(payload), {
-    method: 'GET',
-    mode: 'no-cors'
-  }).then(function(){
+  // Use image tag — guaranteed cross-origin, no CORS, no redirect issues
+  var img = new Image();
+  img.onload = img.onerror = function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
     document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
     document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  }).catch(function(){
-    // no-cors GET rarely fails — assume success
-    msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
-    basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
-    document.getElementById('checkoutBtn').disabled=false;
-  });
+  };
+  img.src = ORDER_URL + '?data=' + encodeURIComponent(payload);
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
