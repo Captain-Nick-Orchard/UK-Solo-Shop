@@ -44,7 +44,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:19;overflow-x:auto;scrollbar-width:none}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -945,36 +945,21 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||''}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  // Submit via hidden iframe form — bypasses CORS completely
-  var iframe = document.createElement('iframe');
-  iframe.name = 'orderTarget';
-  iframe.style.display = 'none';
-  document.body.appendChild(iframe);
-  var form = document.createElement('form');
-  form.method = 'POST';
-  form.action = GAS_URL;
-  form.target = 'orderTarget';
-  form.style.display = 'none';
-  var input = document.createElement('input');
-  input.type = 'hidden';
-  input.name = 'data';
-  input.value = payload;
-  form.appendChild(input);
-  document.body.appendChild(form);
-  form.submit();
-  setTimeout(function(){
-    document.body.removeChild(form);
-    document.body.removeChild(iframe);
-  }, 5000);
-  // Show success after short delay
-  setTimeout(function(){
+  fetch(ORDER_URL, {
+    method: 'POST',
+    body: 'data=' + encodeURIComponent(payload)
+  }).then(function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
     document.getElementById('custName').value=''; document.getElementById('custDiscord').value='';
     document.getElementById('custNotes').value=''; document.getElementById('tribeCheck').checked=false;
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
-  }, 2000);
+  }).catch(function(){
+    msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
+    basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
+    document.getElementById('checkoutBtn').disabled=false;
+  });
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
