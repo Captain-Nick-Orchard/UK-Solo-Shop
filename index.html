@@ -438,19 +438,18 @@ function populateFilters() {
     if(n&&names.indexOf(n)===-1) names.push(n);
     if(t&&types.indexOf(t)===-1) types.push(t);
     if(v){
-      // If variant has a dash, the colour/style is after the last dash
-      // e.g. "Top Melee - Cotton Candy" → "Cotton Candy"
-      // e.g. "Solid 79" → "Solid 79" (no dash, use whole thing)
-      var kw;
-      var dashIdx=v.lastIndexOf(' - ');
+      var dashIdx=v.indexOf(' - ');
       if(dashIdx!==-1){
-        kw=v.substring(dashIdx+3).trim();
+        // Add both parts as separate keywords
+        var before=v.substring(0,dashIdx).trim();  // e.g. "Top Melee"
+        var after=v.substring(dashIdx+3).trim();   // e.g. "Cotton Candy"
+        if(before&&varKeywords.indexOf(before)===-1) varKeywords.push(before);
+        if(after&&varKeywords.indexOf(after)===-1) varKeywords.push(after);
       } else {
-        // No dash — strip leading numbers and use whole phrase
-        kw=v.replace(/^\d+\s*/,'').trim();
+        // No dash — normalise underscores to spaces and use whole phrase
+        var kw=v.replace(/_/g,' ').trim();
+        if(kw&&varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
       }
-      // Remove any remaining numbers at end (e.g. "Solid 79" keep as is, but "Event 2" keep as "Event 2")
-      if(kw&&varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
     }
   }); });
   names.sort(); types.sort(); varKeywords.sort();
@@ -468,7 +467,7 @@ function getFiltered() {
   return allGroups.filter(function(g){
     return g.some(function(r){
       var nm=String(r[COL.creature]||'').toLowerCase(), tp=String(r[COL.type]||'').toLowerCase();
-      var vr=String(r[COL.variant]||'').toLowerCase(), inf=String(r[COL.info]||'').toLowerCase();
+      var vr=String(r[COL.variant]||'').toLowerCase().replace(/_/g,' '), inf=String(r[COL.info]||'').toLowerCase();
       var tag=String(r[COL.statsTag]||'').toLowerCase();
       return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv));
     });
