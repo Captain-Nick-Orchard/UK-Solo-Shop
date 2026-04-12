@@ -598,6 +598,9 @@ function buildCardHTML(group, si) {
   var isItem=variant.indexOf('Item -')===0;
   var amtAvail=Number(r[COL.amountAvailable]||0)||0;
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
+  var typeValLC=String(r[COL.type]||'').toLowerCase();
+  var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
+  if(isNewIn) noStock=true;
   var nameStyle='';
   var resMult=isItem?1:2;
   var invBadge=buildInvBadge(invHex,invText);
@@ -678,7 +681,7 @@ function buildCardHTML(group, si) {
     var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
     parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOpts||'<option>0</option>')+"</select></div>");
   }
-  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(invText==='Shop Closed'?'Shop Closed':invText==='New in'?'New In Shop':'No Stock'):'Add to Basket')+"</button>");
+  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(isNewIn?'New In Shop':invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket')+"</button>");
   return parts.join('');
 }
 
@@ -700,6 +703,9 @@ function updateCardSections(card,group,si){
   var r=group[si]||group[0];
   var invHex=String(r._inventoryHex||'#ffffff'), invText=String(r._inventoryText||'').trim();
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
+  var typeValLC=String(r[COL.type]||'').toLowerCase();
+  var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
+  if(isNewIn) noStock=true;
   var tagKey=String(r[COL.statsTag]||'').trim();
   var statsEntry=statsMap[tagKey]||null;
   var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
