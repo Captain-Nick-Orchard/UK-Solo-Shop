@@ -1143,54 +1143,53 @@ function renderQueue(rows){
   var el=document.getElementById('queueContent');
   if(!rows.length){ el.innerHTML='<p style="color:#aaa;text-align:center">No orders yet.</p>'; return; }
 
-  // First row is headers
   var hdrs=rows[0];
   var timeIdx=hdrs.indexOf('Time Ordered');
   var nameIdx=hdrs.indexOf('Name');
   if(nameIdx<0) nameIdx=hdrs.indexOf('Customer Name');
   var creatureIdx=hdrs.indexOf('Creature');
+  var variantIdx=hdrs.indexOf('Variant');
   var costIdx=hdrs.indexOf('Cost');
 
-  // Group rows by customer — each customer group starts with a new name
-  // Blank rows and Total rows are separators
+  // Group by name + time — different times = separate queue entries
   var orders=[];
-  var current=null;
+  var orderMap={};
   for(var i=1;i<rows.length;i++){
     var row=rows[i];
-    if(!row||!row.length||!row.join('').trim()) continue; // blank row
+    if(!row||!row.length||!row.join('').trim()) continue;
     var name=String(row[nameIdx]||'').trim();
     var time=String(row[timeIdx]||'').trim();
     var creature=String(row[creatureIdx]||'').trim();
+    var variant=variantIdx>=0?String(row[variantIdx]||'').trim():'';
     var cost=String(row[costIdx]||'').trim();
-    if(cost.indexOf('Total')!==-1) continue; // skip total rows
-    if(!creature) continue; // skip empty creature rows
-    // New customer group if name changes
-    if(!current||name&&name!==current.name){
-      if(name){
-        current={name:name,time:time,creatures:[]};
-        orders.push(current);
-      }
+    if(cost.indexOf('Total')!==-1) continue;
+    if(!creature||!name||!time) continue;
+    var key=name+'|||'+time;
+    if(!orderMap[key]){
+      orderMap[key]={name:name,time:time,creatures:[]};
+      orders.push(orderMap[key]);
     }
-    if(current&&creature) current.creatures.push(creature);
+    orderMap[key].creatures.push(creature+(variant?' ('+variant+')':''));
   }
 
   if(!orders.length){ el.innerHTML='<p style="color:#aaa;text-align:center">No orders in queue.</p>'; return; }
 
-  // Current user's name for highlighting
+  orders.sort(function(a,b){ return a.time.localeCompare(b.time); });
+
   var myName=(document.getElementById('custName')||{}).value||'';
 
   var html='<p style="color:#aaa;font-size:12px;margin-bottom:12px">'+orders.length+' order'+(orders.length!==1?'s':'')+' in queue</p>';
   orders.forEach(function(o,i){
     var isMe=myName&&o.name.toLowerCase()===myName.toLowerCase();
     var youBadge=isMe?'<span class="queue-you">YOU</span>':'';
-    var creatureSummary=o.creatures.slice(0,5).join(', ')+(o.creatures.length>5?' +more':'');
+    var creatureLines=o.creatures.map(function(c){ return '<div style="padding:2px 0">• '+c+'</div>'; }).join('');
     html+='<div class="queue-item'+(isMe?' queue-mine':'')+'">';
-    html+='<div style="display:flex;align-items:center">';
+    html+='<div style="display:flex;align-items:center;margin-bottom:6px">';
     html+='<span class="queue-num">#'+(i+1)+'</span>';
     html+='<span class="queue-name">'+o.name+youBadge+'</span>';
     html+='<span class="queue-time">'+o.time+'</span>';
     html+='</div>';
-    html+='<div class="queue-creatures">'+creatureSummary+'</div>';
+    html+='<div class="queue-creatures">'+creatureLines+'</div>';
     html+='</div>';
   });
 
