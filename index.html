@@ -40,6 +40,8 @@ body.in-shop .shop{display:flex}
 .basket-btn{background:#e94560;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .basket-btn:hover{background:#c73652}
 .basket-count{background:#fff;color:#e94560;border-radius:20px;min-width:28px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e9e4e;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;z-index:200;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
 .controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:57px;z-index:19;overflow-x:auto;scrollbar-width:none}
@@ -240,7 +242,8 @@ select option{background:#16213e}
 </div>
 
 <!-- ── Basket ── -->
-<div class="basket-overlay" id="basketOverlay"></div>
+<div id="toast" class="toast">Added to Basket!</div>
+  <div class="basket-overlay" id="basketOverlay"></div>
 <div class="basket-panel" id="basketPanel">
   <div class="basket-top">
     <div><h2>Your Basket</h2><div class="basket-slots" id="basketSlots">0 / 20 slots used</div></div>
@@ -430,22 +433,24 @@ function goBack() {
 // ── FILTERS ───────────────────────────────────────────────────
 function populateFilters() {
   var names=[], types=[], varKeywords=[];
-  var STOP=['aberrant','the','a','an','top','max','clone','level','lvl','-'];
   allGroups.forEach(function(g){ g.forEach(function(r){
     var n=String(r[COL.creature]||'').trim(), t=String(r[COL.type]||'').trim(), v=String(r[COL.variant]||'').trim();
     if(n&&names.indexOf(n)===-1) names.push(n);
     if(t&&types.indexOf(t)===-1) types.push(t);
     if(v){
-      var clean=v.replace(/[-–—]/g,' ').replace(/[^a-zA-Z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
-      var words=clean.split(' ').filter(Boolean);
-      for(var wi=0;wi<words.length;wi++){
-        var w=words[wi];
-        if(STOP.indexOf(w.toLowerCase())===-1&&!/^\d+$/.test(w)){
-          var kw=w.charAt(0).toUpperCase()+w.slice(1).toLowerCase();
-          if(varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
-          break;
-        }
+      // If variant has a dash, the colour/style is after the last dash
+      // e.g. "Top Melee - Cotton Candy" → "Cotton Candy"
+      // e.g. "Solid 79" → "Solid 79" (no dash, use whole thing)
+      var kw;
+      var dashIdx=v.lastIndexOf(' - ');
+      if(dashIdx!==-1){
+        kw=v.substring(dashIdx+3).trim();
+      } else {
+        // No dash — strip leading numbers and use whole phrase
+        kw=v.replace(/^\d+\s*/,'').trim();
       }
+      // Remove any remaining numbers at end (e.g. "Solid 79" keep as is, but "Event 2" keep as "Event 2")
+      if(kw&&varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
     }
   }); });
   names.sort(); types.sort(); varKeywords.sort();
@@ -784,6 +789,14 @@ function updateCount(){
   document.getElementById('basketSlots').textContent=slotsUsed()+' / '+BASKET_LIMIT+' slots used';
 }
 
+function showToast(msg){
+  var t=document.getElementById('toast');
+  if(!t) return;
+  t.textContent=msg||'Added to Basket!';
+  t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 2000);
+}
+
 function addToBasket(btn){
   var card=btn.closest('.card');
   var group=JSON.parse(card.dataset.group);
@@ -821,7 +834,7 @@ function addToBasket(btn){
       item[rc.key]=raw*needed;
     }
   });
-  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown();
+  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown(); showToast(name+' added to Basket!');
 }
 
 function removeItem(i){ basket.splice(i,1); updateCount(); renderBasket(); rebuildPaymentDropdown(); }
@@ -926,6 +939,7 @@ function placeOrder(){
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
   fetch(ORDER_URL, {
     method: 'POST',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     body: 'data=' + encodeURIComponent(payload)
   })
   .then(function(r){ return r.text(); })
