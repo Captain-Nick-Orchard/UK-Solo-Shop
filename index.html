@@ -1018,8 +1018,10 @@ function placeOrder(){
   var bundledIdxs=pairIdxs.slice(0,bundles*3);
 
   var items=basket.map(function(it,i){
-    var cost=bundledIdxs.indexOf(i)!==-1?0:poLiveVal(it);
-    return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
+    var isBundled=bundledIdxs.indexOf(i)!==-1;
+    var cost=isBundled?0:poLiveVal(it);
+    var creatureName=isBundled?'BUNDLED_'+it.creature:it.creature;
+    return {creature:creatureName,level:it.level,variant:it.variant,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
   });
 
   // Add one bundle summary row per bundle
@@ -1150,6 +1152,7 @@ function renderQueue(rows){
   if(nameIdx<0) nameIdx=hdrs.indexOf('Customer Name');
   var creatureIdx=hdrs.indexOf('Creature');
   var variantIdx=hdrs.indexOf('Variant');
+  var genderIdx=hdrs.indexOf('Singles or Pairs');
   var costIdx=hdrs.indexOf('Cost');
 
   // Group by name + time — different times = separate queue entries
@@ -1162,16 +1165,18 @@ function renderQueue(rows){
     var time=String(row[timeIdx]||'').trim();
     var creature=String(row[creatureIdx]||'').trim();
     var variant=variantIdx>=0?String(row[variantIdx]||'').trim():'';
+    var gender=genderIdx>=0?String(row[genderIdx]||'').trim():'';
     var cost=String(row[costIdx]||'').trim();
     if(cost.indexOf('Total')!==-1) continue;
-    if(cost==='0'||cost===0) continue; // skip individual items included in a bundle
+    if(creature.indexOf('BUNDLED_')===0) continue; // skip individual bundled items
     if(!creature||!name||!time) continue;
     var key=name+'|||'+time;
     if(!orderMap[key]){
       orderMap[key]={name:name,time:time,creatures:[]};
       orders.push(orderMap[key]);
     }
-    orderMap[key].creatures.push(creature+(variant?' ('+variant+')':''));
+    var label=creature+(variant?' ('+variant+')':'')+(gender?' · '+gender:'');
+    orderMap[key].creatures.push(label);
   }
 
   if(!orders.length){ el.innerHTML='<p style="color:#aaa;text-align:center">No orders in queue.</p>'; return; }
