@@ -258,14 +258,14 @@ select option{background:#16213e}
   <div class="checkout-form">
     <div class="checkout-form-fields">
     <h3>Checkout</h3>
-    <div class="form-row"><label>Your Name</label><input id="custName" type="text" placeholder="e.g. TribeLeader99"></div>
-    <div class="form-row"><label>Discord Username</label><input id="custDiscord" type="text" placeholder="e.g. username#1234"></div>
-    <div id="paymentRow" class="form-row" style="display:none"><label>Payment Method</label><select id="paymentSelect"></select></div>
+    <div class="form-row"><label>Character Name <span style="color:#e94560">*</span></label><input id="custName" type="text" placeholder="Your in-game character name"></div>
+    <div class="form-row"><label>Discord Username <span style="color:#e94560">*</span></label><input id="custDiscord" type="text" placeholder="e.g. username#1234"></div>
+    <div id="paymentRow" class="form-row" style="display:none"><label>Payment Method <span style="color:#e94560">*</span></label><select id="paymentSelect"></select></div>
     <div id="orderSummary" style="display:none" class="order-summary"></div>
     <div class="tribe-row">
       <label style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer"><span style="font-size:13px;color:#aaa">On Server Tribe?</span><input type="checkbox" id="tribeCheck" style="width:16px;height:16px;cursor:pointer;accent-color:#e94560"></label>
     </div>
-    <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name</label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
+    <div id="tribeNameRow" class="form-row" style="display:none"><label>Tribe Name <span style="color:#e94560">*</span></label><input id="tribeName" type="text" placeholder="Enter your tribe name"></div>
     <div class="form-row"><label>Notes (optional)</label><textarea id="custNotes" placeholder="Any special requests..."></textarea></div>
     <p class="form-msg" id="formMsg"></p>
     </div>
@@ -1163,6 +1163,7 @@ function renderQueue(rows){
     var variant=variantIdx>=0?String(row[variantIdx]||'').trim():'';
     var cost=String(row[costIdx]||'').trim();
     if(cost.indexOf('Total')!==-1) continue;
+    if(cost==='0'||cost===0) continue; // skip individual items included in a bundle
     if(!creature||!name||!time) continue;
     var key=name+'|||'+time;
     if(!orderMap[key]){
