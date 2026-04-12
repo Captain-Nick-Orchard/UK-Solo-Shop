@@ -441,7 +441,11 @@ function populateFilters() {
       var parts=v.split(' - ');
       parts.forEach(function(part){
         var kw=part.replace(/_/g,' ').trim();
-        if(kw&&varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
+        if(!kw) return;
+        if(/^\d+$/.test(kw)) return; // skip pure numbers
+        // Group anything containing "event" under "Event"
+        if(/\bevent\b/i.test(kw)) kw='Event';
+        if(varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
       });
     }
   }); });
