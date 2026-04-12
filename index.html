@@ -24,7 +24,7 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-heigh
 .cat-btn.all-btn .cat-label{color:#fff}
 
 /* ── Shop (hidden until button clicked) ── */
-.shop{display:none;flex-direction:column;min-height:100vh;width:100%;overflow-x:clip}
+.shop{display:none;flex-direction:column;min-height:100vh;width:100%}
 body.in-shop .landing{display:none}
 body.in-shop{overflow-y:auto}
 body.in-shop .shop{display:flex}
@@ -45,7 +45,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:48px;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:19;overflow-x:auto;scrollbar-width:none}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -57,7 +57,7 @@ select option{background:#16213e}
 
 /* ── Shop body + sidebar ── */
 .shop-body{display:flex;flex:1;align-items:flex-start}
-.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:46px;height:calc(100vh - 46px);scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
+.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:0;height:100vh;scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
 .sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:#0f3460;border-radius:4px}.sidebar::-webkit-scrollbar-thumb:hover{background:#e94560}
 @media(max-width:768px){.sidebar{width:0;overflow:hidden}}
 @media(max-width:768px){.sidebar.open{width:200px;overflow-y:auto}}
