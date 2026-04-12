@@ -24,7 +24,7 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-heigh
 .cat-btn.all-btn .cat-label{color:#fff}
 
 /* ── Shop (hidden until button clicked) ── */
-.shop{display:none;flex-direction:column;min-height:100vh}
+.shop{display:none;flex-direction:column;min-height:100vh;overflow-x:hidden}
 body.in-shop .landing{display:none}
 body.in-shop .shop{display:flex}
 
@@ -44,7 +44,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:19;overflow-x:auto;scrollbar-width:none;align-self:flex-start;width:100%}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -215,6 +215,7 @@ select option{background:#16213e}
   </div>
   <div class="controls">
     <button class="sidebar-toggle" id="sidebarToggle">Dino List</button>
+    <button class="sidebar-toggle" id="sidebarViewToggle" onclick="toggleSidebarView()" style="font-size:12px;padding:5px 8px">A→Z</button>
     <select id="typeFilter"><option value="">All types</option></select>
     <input id="search" type="text" placeholder="Search creatures...">
     <select id="creatureFilter"><option value="">All creatures</option></select>
@@ -521,6 +522,37 @@ function applyFilters() {
 }
 
 // ── SIDEBAR ───────────────────────────────────────────────────
+var sidebarViewAlpha = false;
+
+function toggleSidebarView() {
+  sidebarViewAlpha = !sidebarViewAlpha;
+  var btn = document.getElementById('sidebarViewToggle');
+  if(btn) btn.textContent = sidebarViewAlpha ? 'By Type' : 'A→Z';
+  if(sidebarViewAlpha) populateSidebarAlpha();
+  else populateSidebar();
+}
+
+function populateSidebarAlpha() {
+  var items = document.getElementById('sidebarItems');
+  if(!items) return;
+  items.innerHTML = '';
+  var allItem = document.createElement('div');
+  allItem.className = 'sidebar-item active'; allItem.textContent = 'All Creatures';
+  allItem.onclick = function(){ sidebarFilter('','',allItem); };
+  items.appendChild(allItem);
+  var names = [];
+  allGroups.forEach(function(g){
+    var n = String(g[0][COL.creature]||'').trim();
+    if(n && names.indexOf(n) === -1) names.push(n);
+  });
+  names.sort().forEach(function(n){
+    var el = document.createElement('div');
+    el.className = 'sidebar-item'; el.textContent = n;
+    el.onclick = (function(name, elem){ return function(){ sidebarFilter(name,'',elem); }; })(n, el);
+    items.appendChild(el);
+  });
+}
+
 function populateSidebar() {
   var items=document.getElementById('sidebarItems');
   if(!items) return;
@@ -601,8 +633,9 @@ function buildCardHTML(group, si) {
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
   if(isNewIn) noStock=true;
+  var isSingleClone=typeValLC.indexOf('single clone')!==-1;
   var nameStyle='';
-  var resMult=isItem?1:2;
+  var resMult=isItem?1:isSingleClone?1:2;
   var invBadge=buildInvBadge(invHex,invText);
 
   // Variant bar
@@ -735,8 +768,11 @@ function updateCardSections(card,group,si){
   // Update resources
   var genSelU=card.querySelector('.gender-sel'), qtySelU=card.querySelector('.qty-sel');
   var resMult=1;
+  var typeLC=String(r[COL.type]||'').toLowerCase();
+  var isSC=typeLC.indexOf('single clone')!==-1;
   if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
-  else { var gv=genSelU?genSelU.value:''; var scN=!isNaN(Number(gv))&&Number(gv)>0; resMult=scN?Number(gv):gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
+  else if(isSC){ resMult=genSelU?Number(genSelU.value)||1:1; }
+  else { var gv=genSelU?genSelU.value:''; resMult=gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
   RESOURCES.forEach(function(rc){
     var rawVal=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
     var el=card.querySelector('.res-value[data-raw]');
