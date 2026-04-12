@@ -977,9 +977,43 @@ function placeOrder(){
   document.getElementById('checkoutBtn').disabled=true;
   msg.className='form-msg'; msg.textContent='Placing order...';
   var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
-  var total=basket.reduce(function(t,it){ return t+(it[key]||0); },0);
-  var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||'',type:it.type||''}; });
-  var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
+
+  // Replicate pricing logic from renderSummary
+  function poLiveTek(it){
+    var g=it.gender;
+    if(!isNaN(Number(g))&&Number(g)>0) return it.tek||0;
+    if(g==='Male'||g==='Female') return isTribe?100:150;
+    if(g==='Pair x2') return isTribe?200:300;
+    if(g==='Pair x2 +1 Female') return isTribe?300:400;
+    return it.tek||0;
+  }
+  function poLiveVal(it){
+    if(key!=='tek'){ var tk=it.tek||0; var ltk=poLiveTek(it); var r2=tk>0?ltk/tk:1; return Math.round((it[key]||0)*r2); }
+    return poLiveTek(it);
+  }
+  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'; }).length;
+  var bundles=Math.floor(pairCount/3);
+  var bundlePrice=isTribe?500:750;
+  var tekTotal=basket.reduce(function(t,it){ return t+poLiveTek(it); },0);
+  var ratio=tekTotal>0?basket.reduce(function(t,it){ return t+poLiveVal(it); },0)/tekTotal:1;
+  var bundlePriceScaled=Math.round(bundlePrice*ratio);
+  var pairIdxs=[];
+  basket.forEach(function(it,i){ if(it.gender==='Pair x2') pairIdxs.push(i); });
+  var bundledIdxs=pairIdxs.slice(0,bundles*3);
+
+  var items=basket.map(function(it,i){
+    var cost=bundledIdxs.indexOf(i)!==-1?0:poLiveVal(it);
+    return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
+  });
+
+  // Add one bundle summary row per bundle
+  for(var b=0;b<bundles;b++){
+    var bIdxs=bundledIdxs.slice(b*3,(b+1)*3);
+    var bundleCreatures=bIdxs.map(function(i){ return basket[i].creature; }).join(' + ');
+    items.push({creature:'Bundle '+(b+1)+': '+bundleCreatures,level:'',variant:'3x Pair x2',gender:'Bundle Deal',cost:bundlePriceScaled,imageUrl:'',type:'Bundle'});
+  }
+
+  var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'')+(bundles>0?'\nBundle deals: '+bundles+'x ('+bundlePriceScaled+' '+label+' each)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
   fetch(ORDER_URL + '?data=' + encodeURIComponent(payload), {
     method: 'GET'
