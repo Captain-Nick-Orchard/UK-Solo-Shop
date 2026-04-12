@@ -6,7 +6,7 @@
 <title>UK Solo Ark Shop - Server 5977</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-height:100vh;overflow-x:hidden;overflow-y:auto}
+body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-height:100vh;overflow-y:auto}
 
 /* ── Landing ── */
 .landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1.5rem;background:linear-gradient(160deg,#12192e 0%,#1a1a2e 60%,#0f3460 100%)}
@@ -24,7 +24,7 @@ body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;min-heigh
 .cat-btn.all-btn .cat-label{color:#fff}
 
 /* ── Shop (hidden until button clicked) ── */
-.shop{display:none;flex-direction:column;min-height:100vh;width:100%}
+.shop{display:none;flex-direction:column;min-height:100vh;width:100%;overflow-x:clip}
 body.in-shop .landing{display:none}
 body.in-shop{overflow-y:auto}
 body.in-shop .shop{display:flex}
@@ -45,7 +45,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:48px;z-index:19;overflow-x:auto;scrollbar-width:none}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
