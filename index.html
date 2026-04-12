@@ -678,7 +678,7 @@ function buildCardHTML(group, si) {
     var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
     parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOpts||'<option>0</option>')+"</select></div>");
   }
-  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket')+"</button>");
+  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(invText==='Shop Closed'?'Shop Closed':invText==='New in'?'New In Shop':'No Stock'):'Add to Basket')+"</button>");
   return parts.join('');
 }
 
