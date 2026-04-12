@@ -945,9 +945,8 @@ function placeOrder(){
   var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||''}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
-  fetch(ORDER_URL, {
-    method: 'POST',
-    body: 'data=' + encodeURIComponent(payload)
+  fetch(ORDER_URL + '?data=' + encodeURIComponent(payload), {
+    method: 'GET'
   }).then(function(){
     msg.className='form-msg ok'; msg.textContent='Order placed! We will contact you on Discord.';
     basket=[]; updateCount(); renderBasket(); rebuildPaymentDropdown();
