@@ -444,6 +444,7 @@ function populateFilters() {
         if(!kw) return;
         if(/^\d+$/.test(kw)) return; // skip pure numbers
         kw=kw.replace(/\s+\d+$/, '').trim();  // strip trailing number e.g. "Event 2"→"Event"
+        kw=kw.replace(/^\d+\s+/, '').trim();  // strip leading number e.g. "192 Event"→"Event"
         kw=kw.replace(/-ish$/i, '').trim();   // strip -ish suffix e.g. "Deadpool-ish"→"Deadpool"
         if(!kw) return;
         if(varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
