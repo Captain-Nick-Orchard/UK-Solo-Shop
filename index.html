@@ -955,7 +955,7 @@ function placeOrder(){
     document.getElementById('tribeName').value=''; document.getElementById('tribeNameRow').style.display='none';
     document.getElementById('checkoutBtn').disabled=false;
   };
-  img.src = ORDER_URL + '?data=' + encodeURIComponent(payload);
+  img.src = GAS_URL + '?action=order&data=' + encodeURIComponent(payload);
 }
 
 // ── MOBILE OVERLAY ────────────────────────────────────────────
