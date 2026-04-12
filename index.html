@@ -443,8 +443,9 @@ function populateFilters() {
         var kw=part.replace(/_/g,' ').trim();
         if(!kw) return;
         if(/^\d+$/.test(kw)) return; // skip pure numbers
-        // Group anything containing "event" under "Event"
-        if(/\bevent\b/i.test(kw)) kw='Event';
+        kw=kw.replace(/\s+\d+$/, '').trim();  // strip trailing number e.g. "Event 2"→"Event"
+        kw=kw.replace(/-ish$/i, '').trim();   // strip -ish suffix e.g. "Deadpool-ish"→"Deadpool"
+        if(!kw) return;
         if(varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
       });
     }
@@ -464,7 +465,7 @@ function getFiltered() {
   return allGroups.filter(function(g){
     return g.some(function(r){
       var nm=String(r[COL.creature]||'').toLowerCase(), tp=String(r[COL.type]||'').toLowerCase();
-      var vr=String(r[COL.variant]||'').toLowerCase().replace(/_/g,' '), inf=String(r[COL.info]||'').toLowerCase();
+      var vr=String(r[COL.variant]||'').toLowerCase().replace(/_/g,' ').replace(/-ish\b/g,''), inf=String(r[COL.info]||'').toLowerCase();
       var tag=String(r[COL.statsTag]||'').toLowerCase();
       return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv));
     });
