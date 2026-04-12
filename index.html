@@ -57,7 +57,7 @@ select option{background:#16213e}
 
 /* ── Shop body + sidebar ── */
 .shop-body{display:flex;flex:1;align-items:flex-start}
-.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:46px;max-height:calc(100vh - 46px);align-self:flex-start;scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
+.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:46px;height:calc(100vh - 46px);scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
 .sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:#0f3460;border-radius:4px}.sidebar::-webkit-scrollbar-thumb:hover{background:#e94560}
 @media(max-width:768px){.sidebar{width:0;overflow:hidden}}
 @media(max-width:768px){.sidebar.open{width:200px;overflow-y:auto}}
@@ -140,14 +140,14 @@ select option{background:#16213e}
 /* ── Basket ── */
 .basket-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50}
 .basket-overlay.open{display:block}
-.basket-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;background:#16213e;border-left:1px solid #0f3460;z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s}
+.basket-panel{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:100vw;background:#16213e;border-left:1px solid #0f3460;z-index:51;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s;overflow:hidden}
 .basket-panel.open{transform:translateX(0)}
 .basket-top{padding:1rem 1.5rem;border-bottom:1px solid #0f3460;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .basket-top h2{font-size:1.1rem;font-weight:700;color:#e94560}
 .basket-slots{font-size:12px;color:#888;margin-top:2px}
 .close-btn{background:none;border:none;color:#888;font-size:22px;cursor:pointer;line-height:1;padding:0}
 .close-btn:hover{color:#fff}
-.basket-items{flex:1;overflow-y:auto;padding:1rem 1.5rem;display:flex;flex-direction:column;gap:10px}
+.basket-items{flex:1;overflow-y:auto;padding:1rem 1.5rem;display:flex;flex-direction:column;gap:10px;min-height:0}
 .basket-empty{text-align:center;color:#555;margin-top:3rem;font-size:14px}
 .basket-item{background:#0f3460;border-radius:10px;padding:12px 14px;position:relative;display:flex;flex-direction:column;gap:3px}
 .bi-name{font-weight:600;font-size:14px;color:#fff;padding-right:24px}
@@ -156,13 +156,13 @@ select option{background:#16213e}
 .bi-remove{position:absolute;top:8px;right:8px;background:#e94560;border:none;color:#fff;font-size:13px;font-weight:700;cursor:pointer;line-height:1;padding:3px 7px;border-radius:6px}
 .bi-remove:hover{background:#c73652}
 .checkout-form{padding:1rem 1.5rem;border-top:1px solid #0f3460;display:flex;flex-direction:column;gap:10px;flex-shrink:0}
-.checkout-form-fields{display:flex;flex-direction:column;gap:10px}
+.checkout-form-fields{display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:220px}
 .checkout-form h3{font-size:14px;font-weight:600;color:#e0e0e0}
 .form-row{display:flex;flex-direction:column;gap:4px}
 .form-row label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.6px}
 .form-row input,.form-row textarea,.form-row select{width:100%;padding:8px 10px;border:1px solid #0f3460;border-radius:8px;background:#0f3460;color:#e0e0e0;font-size:13px;outline:none}
 .form-row input:focus,.form-row textarea:focus,.form-row select:focus{border-color:#e94560}
-.form-row textarea{resize:vertical;min-height:52px}
+.form-row textarea{resize:vertical;min-height:44px;max-height:100px}
 .tribe-row{display:flex;align-items:center;gap:10px;background:#0f3460;border-radius:8px;padding:10px 12px}
 .tribe-row label{font-size:13px;color:#aaa;cursor:pointer;display:flex;align-items:center;gap:8px;flex:1}
 .tribe-row input[type="checkbox"]{width:16px;height:16px;cursor:pointer;accent-color:#e94560}
@@ -271,7 +271,7 @@ select option{background:#16213e}
     <p class="form-msg" id="formMsg"></p>
     </div>
   </div>
-  <div class="checkout-btn-wrap" style="padding:0 1.5rem 1rem;flex-shrink:0;display:flex;flex-direction:column;gap:8px">
+  <div class="checkout-btn-wrap" style="padding:0.75rem 1.5rem 1rem;flex-shrink:0;display:flex;flex-direction:column;gap:8px;border-top:1px solid #0f3460;margin-top:auto">
     <button class="checkout-btn" id="checkoutBtn">Place Order</button>
     <button class="checkout-btn" id="queueBtn" onclick="openQueue()" style="background:#0f3460;border:1px solid #e94560;color:#e0e0e0;font-size:13px">📋 View Order Queue</button>
   </div>
@@ -1020,8 +1020,8 @@ function placeOrder(){
   var items=basket.map(function(it,i){
     var isBundled=bundledIdxs.indexOf(i)!==-1;
     var cost=isBundled?0:poLiveVal(it);
-    var creatureName=isBundled?'BUNDLED_'+it.creature:it.creature;
-    return {creature:creatureName,level:it.level,variant:it.variant,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
+    var variantMarked=isBundled?'__BUNDLED__':it.variant;
+    return {creature:it.creature,level:it.level,variant:variantMarked,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
   });
 
   // Add one bundle summary row per bundle
@@ -1168,7 +1168,9 @@ function renderQueue(rows){
     var gender=genderIdx>=0?String(row[genderIdx]||'').trim():'';
     var cost=String(row[costIdx]||'').trim();
     if(cost.indexOf('Total')!==-1) continue;
-    if(creature.indexOf('BUNDLED_')===0) continue; // skip individual bundled items
+    var costStr=cost.replace(/\s/g,''); // strip all whitespace
+    if(costStr==='0'||costStr.match(/:\d*0+$/)&&!costStr.match(/:[1-9]/)) continue; // skip bundled items
+    if(variant==='__BUNDLED__') continue; // skip bundled individuals
     if(!creature||!name||!time) continue;
     var key=name+'|||'+time;
     if(!orderMap[key]){
