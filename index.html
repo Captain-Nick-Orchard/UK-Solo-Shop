@@ -438,18 +438,11 @@ function populateFilters() {
     if(n&&names.indexOf(n)===-1) names.push(n);
     if(t&&types.indexOf(t)===-1) types.push(t);
     if(v){
-      var dashIdx=v.indexOf(' - ');
-      if(dashIdx!==-1){
-        // Add both parts as separate keywords
-        var before=v.substring(0,dashIdx).trim();  // e.g. "Top Melee"
-        var after=v.substring(dashIdx+3).trim();   // e.g. "Cotton Candy"
-        if(before&&varKeywords.indexOf(before)===-1) varKeywords.push(before);
-        if(after&&varKeywords.indexOf(after)===-1) varKeywords.push(after);
-      } else {
-        // No dash — normalise underscores to spaces and use whole phrase
-        var kw=v.replace(/_/g,' ').trim();
+      var parts=v.split(' - ');
+      parts.forEach(function(part){
+        var kw=part.replace(/_/g,' ').trim();
         if(kw&&varKeywords.indexOf(kw)===-1) varKeywords.push(kw);
-      }
+      });
     }
   }); });
   names.sort(); types.sort(); varKeywords.sort();
