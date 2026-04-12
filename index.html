@@ -498,7 +498,7 @@ function applyFilters() {
       for(var vi=0;vi<group.length;vi++){
         var vst=String(group[vi][COL.shopTag]||'').toLowerCase();
         var vtp=String(group[vi][COL.type]||'').toLowerCase();
-        if(vst===ftLower||vtp===ftLower){ startSi=vi; break; }
+        if(vst===ftLower||vtp===ftLower||vtp.indexOf(ftLower)!==-1){ startSi=vi; break; }
       }
     }
     card.innerHTML=buildCardHTML(group,startSi);
