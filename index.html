@@ -815,7 +815,7 @@ function addToBasket(btn){
   if(isItem){ gender='Item'; needed=qtySel?Number(qtySel.value)||1:1; }
   else { gender=genSel?genSel.value:'Pair x2'; var scQty=!isNaN(Number(gender))&&Number(gender)>0; needed=scQty?Number(gender):gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
   if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
-  var item={creature:name,level:level,variant:variant,gender:gender,slots:needed};
+  var item={creature:name,level:level,variant:variant,gender:gender,slots:needed,imageUrl:String(r[COL.imageUrl]||'').trim()};
   var isTribeBasket=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
   RESOURCES.forEach(function(rc){
     var raw=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
@@ -932,7 +932,7 @@ function placeOrder(){
   msg.className='form-msg'; msg.textContent='Placing order...';
   var key=sel.value, label=sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].textContent:key;
   var total=basket.reduce(function(t,it){ return t+(it[key]||0); },0);
-  var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0}; });
+  var items=basket.map(function(it){ return {creature:it.creature,level:it.level,variant:it.variant,gender:it.gender,cost:it[key]||0,imageUrl:it.imageUrl||''}; });
   var orderNotes=(notes?notes+'\n':'')+(isTribe?'Tribe: '+tribeName+' (On Server pricing applied)':'');
   var payload = JSON.stringify({customerName:name,discord:discord,notes:orderNotes,paymentMethod:label,items:items,tribeName:tribeName});
   fetch(ORDER_URL + '?data=' + encodeURIComponent(payload), {
