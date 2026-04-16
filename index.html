@@ -221,6 +221,7 @@ select option{background:#16213e}
   <div class="controls">
     <button class="sidebar-toggle" id="sidebarToggle">Dino List</button>
     <select id="typeFilter"><option value="">All types</option></select>
+    <select id="stockFilter" onchange="applyFilters()"><option value="">All stock</option><option value="in stock">In Stock</option><option value="low stock">Low Stock</option><option value="no stock">No Stock</option></select>
     <input id="search" type="text" placeholder="Search creatures...">
     <select id="creatureFilter"><option value="">All creatures</option></select>
     <select id="variantFilter"><option value="">All variants</option></select>
@@ -508,12 +509,15 @@ function getFiltered() {
   var fc=document.getElementById('creatureFilter').value.toLowerCase();
   var ft=document.getElementById('typeFilter').value.toLowerCase();
   var fv=document.getElementById('variantFilter').value.toLowerCase();
+  var fs=document.getElementById('stockFilter')?document.getElementById('stockFilter').value.toLowerCase():'';
   return allGroups.filter(function(g){
     return g.some(function(r){
       var nm=String(r[COL.creature]||'').toLowerCase(), tp=String(r[COL.type]||'').toLowerCase();
       var vr=String(r[COL.variant]||'').toLowerCase().replace(/_/g,' ').replace(/-ish\b/g,''), inf=String(r[COL.info]||'').toLowerCase();
       var tag=String(r[COL.statsTag]||'').toLowerCase();
-      return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv));
+      var inv=String(r._inventoryText||'').toLowerCase();
+      var stockMatch=!fs||(fs==='in stock'&&inv==='in stock')||(fs==='low stock'&&inv==='low stock')||(fs==='no stock'&&(inv==='no stock'||inv==='shop closed'||inv===''));
+      return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv))&&stockMatch;
     });
   });
 }
@@ -526,7 +530,8 @@ function applyFilters() {
   var ft=document.getElementById('typeFilter').value;
   var fc=document.getElementById('creatureFilter').value;
   var fq=document.getElementById('search').value;
-  if(ft||fc||fq){
+  var fs=document.getElementById('stockFilter')?document.getElementById('stockFilter').value:'';
+  if(ft||fc||fq||fs){
     // When filtering: sort by level descending
     filtered=filtered.slice().sort(function(a,b){
       var levelA=0,levelB=0;
@@ -684,7 +689,8 @@ function buildCardHTML(group, si) {
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
-  if(isNewIn) noStock=true;
+  if(isNewIn&&noStock) noStock=true; // New In + no stock = still blocked
+  // New In + in stock or low stock = allow adding to basket
   var isSingleClone=typeValLC.indexOf('single clone')!==-1;
   var nameStyle='';
   var resMult=isItem?1:isSingleClone?1:2;
@@ -766,7 +772,8 @@ function buildCardHTML(group, si) {
     var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
     parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOpts||'<option>0</option>')+"</select></div>");
   }
-  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+(noStock?(isNewIn?'New In Shop':invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket')+"</button>");
+  var btnText=noStock?(isNewIn?'New In Shop':invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket';
+  parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+btnText+"</button>");
   return parts.join('');
 }
 
@@ -790,7 +797,7 @@ function updateCardSections(card,group,si){
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
-  if(isNewIn) noStock=true;
+  // isNewIn only blocks basket when actually no stock
   var tagKey=String(r[COL.statsTag]||'').trim();
   var statsEntry=statsMap[tagKey]||null;
   var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
