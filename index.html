@@ -30,7 +30,7 @@ body.in-shop{overflow-y:auto}
 body.in-shop .shop{display:flex}
 
 /* ── Header ── */
-.shop-header{background:#16213e;padding:.5rem 1rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:20;min-height:54px}
+.shop-header{background:#16213e;padding:.5rem 1rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:26;min-height:54px}
 @media(max-width:768px){.shop-header{padding:.3rem .5rem;gap:4px}}
 @media(max-width:768px){.shop-header h1{font-size:clamp(.7rem,2.5vw,.85rem);letter-spacing:0}}
 .shop-header h1{font-size:clamp(1rem,2.5vw,1.4rem);font-weight:800;color:#e94560;letter-spacing:1px;text-align:center}
@@ -46,7 +46,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:54px;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:54px;z-index:25;overflow-x:auto;scrollbar-width:none}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -191,11 +191,11 @@ select option{background:#16213e}
 
 <!-- ── Landing ── -->
 <div class="landing" id="landing">
-  <h1>UK Solo Ark Shop</h1>
-  <p>Server 5977 — Choose a category to browse</p>
-  <div class="welcome-box"><p>Welcome to UK Solo Shop. The site is still WIP, so please message if something doesn't look correct. Prices are discounted in the basket as you add them. Currently limited to 20 dinos per order to keep things fair and orders moving. Please allow 48 hours to fill orders.</p></div>
+  <h1 id="landingTitle" style="opacity:0"> </h1>
+  <p id="landingSubtitle" style="opacity:0"> </p>
+  <div class="welcome-box" id="welcomeBox" style="opacity:0"><p id="welcomeText"> </p></div>
   <div class="cat-grid">
-    <button class="cat-btn" data-type="New in" style="background:#e94560;border-color:#e94560;grid-column:1/-1"><span class="cat-emoji">✨</span><span class="cat-label">New In Shop</span></button>
+    <button class="cat-btn" data-type="New in" style="grid-column:1/-1;padding:12px 10px"><span class="cat-emoji">✨</span><span class="cat-label">New In Shop</span></button>
     <button class="cat-btn all-btn" id="btn-all"><span class="cat-emoji">🦕</span><span class="cat-label">All</span></button>
     <button class="cat-btn" data-type="Items"><span class="cat-emoji">📦</span><span class="cat-label">Items</span></button>
     <button class="cat-btn" data-type="Boss Dinos"><span class="cat-emoji">👑</span><span class="cat-label">Boss Dinos</span></button>
@@ -346,17 +346,16 @@ function parseConfig(data) {
   data.values.forEach(function(row) {
     if (row[0] && row[1] !== undefined) config[String(row[0]).trim()] = String(row[1]).trim();
   });
-  if (config['landing_title']) {
-    var el = document.querySelector('.landing h1');
-    if (el) el.textContent = config['landing_title'];
-  }
-  if (config['landing_subtitle']) {
-    var el2 = document.querySelector('.landing p');
-    if (el2) el2.textContent = config['landing_subtitle'];
-  }
-  if (config['welcome_text']) {
-    var el3 = document.querySelector('.welcome-box p');
-    if (el3) el3.textContent = config['welcome_text'];
+  var title = document.getElementById('landingTitle');
+  var subtitle = document.getElementById('landingSubtitle');
+  var welcome = document.getElementById('welcomeText');
+  var welcomeBox = document.getElementById('welcomeBox');
+  if (title) { title.textContent = config['landing_title'] || 'UK Solo Ark Shop'; title.style.opacity='1'; }
+  if (subtitle) { subtitle.textContent = config['landing_subtitle'] || 'Server 5977 — Choose a category to browse'; subtitle.style.opacity='1'; }
+  if (welcome && welcomeBox) {
+    welcome.textContent = config['welcome_text'] || '';
+    welcomeBox.style.display = welcome.textContent ? '' : 'none';
+    welcomeBox.style.opacity = '1';
   }
 }
 
@@ -1133,7 +1132,17 @@ window.addEventListener('load', function() {
   document.getElementById('overlayClose').addEventListener('click', closeOverlay);
   document.getElementById('overlayPrev').addEventListener('click', function(){ overlayNav(-1); });
   document.getElementById('overlayNext').addEventListener('click', function(){ overlayNav(1); });
-  document.getElementById('sidebarToggle').addEventListener('click', function(){ var sb=document.getElementById('sidebar'); if(window.innerWidth<=768){ sb.classList.toggle('open'); } else { sb.classList.toggle('closed'); } });
+  document.getElementById('sidebarToggle').addEventListener('click', function(){
+  var sb=document.getElementById('sidebar');
+  var grid=document.getElementById('grid');
+  if(window.innerWidth<=768){
+    sb.classList.toggle('open');
+  } else {
+    sb.classList.toggle('closed');
+    var isClosed=sb.classList.contains('closed');
+    if(grid) grid.style.marginLeft=isClosed?'0':'200px';
+  }
+});
   document.getElementById('checkoutBtn').addEventListener('click', placeOrder);
   document.getElementById('tribeCheck').addEventListener('change', function(){
     document.getElementById('tribeNameRow').style.display=this.checked?'flex':'none';
