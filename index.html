@@ -689,8 +689,9 @@ function buildCardHTML(group, si) {
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
-  if(isNewIn&&noStock) noStock=true; // New In + no stock = still blocked
-  // New In + in stock or low stock = allow adding to basket
+  // New In: if in stock or low stock = active button; if no stock = show "New In Shop" disabled
+  if(isNewIn&&!noStock) noStock=false; // explicitly allow
+  if(isNewIn&&noStock) noStock=true;   // explicitly block
   var isSingleClone=typeValLC.indexOf('single clone')!==-1;
   var nameStyle='';
   var resMult=isItem?1:isSingleClone?1:2;
@@ -944,7 +945,9 @@ function addToBasket(btn){
       item[rc.key]=raw*needed;
     }
   });
-  basket.push(item); updateCount(); renderBasket(); rebuildPaymentDropdown(); showToast(name+' added to Basket!');
+  basket.push(item); 
+  console.log('basket item tek:', item.tek, '_rawTek:', item._rawTek, 'gender:', item.gender);
+  updateCount(); renderBasket(); rebuildPaymentDropdown(); showToast(name+' added to Basket!');
 }
 
 function removeItem(i){ basket.splice(i,1); updateCount(); renderBasket(); rebuildPaymentDropdown(); }
