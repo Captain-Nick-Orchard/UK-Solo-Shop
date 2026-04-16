@@ -933,11 +933,19 @@ function addToBasket(btn){
       var scQ=!isNaN(Number(gender))&&Number(gender)>0;
       if(rc.key==='tek'&&!scQ){
         // Use sheet raw tek value * gender multiplier * tribe discount
-        var tekPerCreature=raw; // raw is the per-creature tek from the sheet
-        if(gender==='Male'||gender==='Female') item[rc.key]=Math.round(tekPerCreature*tribeMult);
-        else if(gender==='Pair x2') item[rc.key]=Math.round(tekPerCreature*2*tribeMult);
-        else if(gender==='Pair x2 +1 Female') item[rc.key]=Math.round(tekPerCreature*3*tribeMult);
-        else item[rc.key]=Math.round(raw*needed*tribeMult);
+        var tekPerCreature=raw;
+        var isNIAdd=tekPerCreature===250; // New In pricing
+        if(isNIAdd){
+          if(gender==='Male'||gender==='Female') item[rc.key]=isTribeBasket?200:250;
+          else if(gender==='Pair x2') item[rc.key]=isTribeBasket?400:500;
+          else if(gender==='Pair x2 +1 Female') item[rc.key]=isTribeBasket?600:750;
+          else item[rc.key]=Math.round(tekPerCreature*needed*(isTribeBasket?0.8:1));
+        } else {
+          if(gender==='Male'||gender==='Female') item[rc.key]=Math.round(tekPerCreature*tribeMult);
+          else if(gender==='Pair x2') item[rc.key]=Math.round(tekPerCreature*2*tribeMult);
+          else if(gender==='Pair x2 +1 Female') item[rc.key]=Math.round(tekPerCreature*3*tribeMult);
+          else item[rc.key]=Math.round(raw*needed*tribeMult);
+        }
       } else {
         item[rc.key]=isTribeBasket?Math.round(raw*needed*(2/3)):raw*needed;
       }
@@ -982,7 +990,15 @@ function renderSummary(){
   var isTribe=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
   function liveTek(it){
     var g=it.gender;
-    var base=it._rawTek||150; // use sheet tek value as base
+    var base=it._rawTek||150;
+    var isNI=base===250; // New In pricing
+    if(isNI){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*(isTribe?0.8:1));
+      if(g==='Male'||g==='Female') return isTribe?200:250;
+      if(g==='Pair x2') return isTribe?400:500;
+      if(g==='Pair x2 +1 Female') return isTribe?600:750;
+      return it.tek||0;
+    }
     var mult=isTribe?(2/3):1;
     if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*mult);
     if(g==='Male'||g==='Female') return Math.round(base*mult);
@@ -1053,6 +1069,14 @@ function placeOrder(){
   function poLiveTek(it){
     var g=it.gender;
     var base=it._rawTek||150;
+    var isNI=base===250;
+    if(isNI){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*(isTribe?0.8:1));
+      if(g==='Male'||g==='Female') return isTribe?200:250;
+      if(g==='Pair x2') return isTribe?400:500;
+      if(g==='Pair x2 +1 Female') return isTribe?600:750;
+      return it.tek||0;
+    }
     var mult=isTribe?(2/3):1;
     if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*mult);
     if(g==='Male'||g==='Female') return Math.round(base*mult);
