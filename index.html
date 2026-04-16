@@ -921,12 +921,13 @@ function addToBasket(btn){
   else { gender=genSel?genSel.value:'Pair x2'; var scQty=!isNaN(Number(gender))&&Number(gender)>0; needed=scQty?Number(gender):gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
   if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
   var item={creature:name,level:level,variant:variant,gender:gender,slots:needed,imageUrl:String(r[COL.imageUrl]||'').trim(),type:String(r[COL.type]||'').trim()};
-  var rawTekVal=parseFloat(String(r['tek']||r[COL['tek']]||'0').replace(/[^0-9.]/g,''))||0;
-  item._rawTek=rawTekVal; // store raw sheet tek for bundle eligibility
+  var rawTekVal=parseFloat(String(r[COL.tek]||r['Tek']||r['tek']||'0').replace(/[^0-9.]/g,''))||0;
+  console.log('addToBasket tek debug:', r[COL.tek], r['Tek'], 'rawTekVal:', rawTekVal, 'gender:', gender);
+  item._rawTek=rawTekVal;
   var isTribeBasket=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
   var tribeMult=isTribeBasket?(2/3):1;
   RESOURCES.forEach(function(rc){
-    var raw=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
+    var raw=parseFloat(String(r[COL[rc.key]]||r[rc.key]||'0').replace(/[^0-9.]/g,''))||0;
     if(!isItem){
       var scQ=!isNaN(Number(gender))&&Number(gender)>0;
       if(rc.key==='tek'&&!scQ){
