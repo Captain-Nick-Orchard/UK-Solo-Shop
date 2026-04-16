@@ -934,12 +934,18 @@ function addToBasket(btn){
       if(rc.key==='tek'&&!scQ){
         // Use sheet raw tek value * gender multiplier * tribe discount
         var tekPerCreature=raw;
-        var isNIAdd=tekPerCreature===250; // New In pricing
+        var isNIAdd=tekPerCreature===250;
+        var isLLAdd=tekPerCreature===50;
         if(isNIAdd){
           if(gender==='Male'||gender==='Female') item[rc.key]=isTribeBasket?200:250;
           else if(gender==='Pair x2') item[rc.key]=isTribeBasket?400:500;
           else if(gender==='Pair x2 +1 Female') item[rc.key]=isTribeBasket?600:750;
           else item[rc.key]=Math.round(tekPerCreature*needed*(isTribeBasket?0.8:1));
+        } else if(isLLAdd){
+          if(gender==='Male'||gender==='Female') item[rc.key]=50;
+          else if(gender==='Pair x2') item[rc.key]=100;
+          else if(gender==='Pair x2 +1 Female') item[rc.key]=150;
+          else item[rc.key]=50*needed;
         } else {
           if(gender==='Male'||gender==='Female') item[rc.key]=Math.round(tekPerCreature*tribeMult);
           else if(gender==='Pair x2') item[rc.key]=Math.round(tekPerCreature*2*tribeMult);
@@ -992,11 +998,19 @@ function renderSummary(){
     var g=it.gender;
     var base=it._rawTek||150;
     var isNI=base===250; // New In pricing
+    var isLL=base===50;  // Lower Lvl pricing
     if(isNI){
       if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*(isTribe?0.8:1));
       if(g==='Male'||g==='Female') return isTribe?200:250;
       if(g==='Pair x2') return isTribe?400:500;
       if(g==='Pair x2 +1 Female') return isTribe?600:750;
+      return it.tek||0;
+    }
+    if(isLL){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(50*Number(g));
+      if(g==='Male'||g==='Female') return 50;
+      if(g==='Pair x2') return 100;
+      if(g==='Pair x2 +1 Female') return 150;
       return it.tek||0;
     }
     var mult=isTribe?(2/3):1;
@@ -1070,11 +1084,19 @@ function placeOrder(){
     var g=it.gender;
     var base=it._rawTek||150;
     var isNI=base===250;
+    var isLL=base===50;
     if(isNI){
       if(!isNaN(Number(g))&&Number(g)>0) return Math.round(base*Number(g)*(isTribe?0.8:1));
       if(g==='Male'||g==='Female') return isTribe?200:250;
       if(g==='Pair x2') return isTribe?400:500;
       if(g==='Pair x2 +1 Female') return isTribe?600:750;
+      return it.tek||0;
+    }
+    if(isLL){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(50*Number(g));
+      if(g==='Male'||g==='Female') return 50;
+      if(g==='Pair x2') return 100;
+      if(g==='Pair x2 +1 Female') return 150;
       return it.tek||0;
     }
     var mult=isTribe?(2/3):1;
