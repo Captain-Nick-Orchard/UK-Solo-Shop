@@ -833,14 +833,14 @@ function updateCardSections(card,group,si){
   if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
   else if(isSC){ resMult=genSelU?Number(genSelU.value)||1:1; }
   else { var gv=genSelU?genSelU.value:''; resMult=gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
-  RESOURCES.forEach(function(rc){
-    var rawVal=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
-    var el=card.querySelector('.res-value[data-raw]');
-    // find by label
-  });
-  card.querySelectorAll('.res-value[data-raw]').forEach(function(el,idx){
-    var raw=parseFloat(el.dataset.raw)||0;
-    el.textContent=raw===0?'-':String(raw*resMult);
+  // Update data-raw from new variant's values AND refresh display
+  var resEls=card.querySelectorAll('.res-value[data-raw]');
+  RESOURCES.forEach(function(rc,idx){
+    var rawVal=parseFloat(String(r[COL[rc.key]]||r[rc.key]||'0').replace(/[^0-9.]/g,''))||0;
+    if(resEls[idx]){
+      resEls[idx].dataset.raw=rawVal;
+      resEls[idx].textContent=rawVal===0?'-':String(rawVal*resMult);
+    }
   });
 
   // Update image
@@ -946,6 +946,11 @@ function addToBasket(btn){
           else if(gender==='Pair x2') item[rc.key]=100;
           else if(gender==='Pair x2 +1 Female') item[rc.key]=150;
           else item[rc.key]=50*needed;
+        } else if(tekPerCreature===200){
+          if(gender==='Male'||gender==='Female') item[rc.key]=isTribeBasket?150:200;
+          else if(gender==='Pair x2') item[rc.key]=isTribeBasket?300:400;
+          else if(gender==='Pair x2 +1 Female') item[rc.key]=isTribeBasket?450:600;
+          else item[rc.key]=Math.round(tekPerCreature*needed*(isTribeBasket?0.75:1));
         } else {
           if(gender==='Male'||gender==='Female') item[rc.key]=Math.round(tekPerCreature*tribeMult);
           else if(gender==='Pair x2') item[rc.key]=Math.round(tekPerCreature*2*tribeMult);
@@ -1011,6 +1016,14 @@ function renderSummary(){
       if(g==='Male'||g==='Female') return 50;
       if(g==='Pair x2') return 100;
       if(g==='Pair x2 +1 Female') return 150;
+      return it.tek||0;
+    }
+    var is200=base===200;
+    if(is200){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(200*Number(g)*(isTribe?0.75:1));
+      if(g==='Male'||g==='Female') return isTribe?150:200;
+      if(g==='Pair x2') return isTribe?300:400;
+      if(g==='Pair x2 +1 Female') return isTribe?450:600;
       return it.tek||0;
     }
     var mult=isTribe?(2/3):1;
@@ -1097,6 +1110,13 @@ function placeOrder(){
       if(g==='Male'||g==='Female') return 50;
       if(g==='Pair x2') return 100;
       if(g==='Pair x2 +1 Female') return 150;
+      return it.tek||0;
+    }
+    if(base===200){
+      if(!isNaN(Number(g))&&Number(g)>0) return Math.round(200*Number(g)*(isTribe?0.75:1));
+      if(g==='Male'||g==='Female') return isTribe?150:200;
+      if(g==='Pair x2') return isTribe?300:400;
+      if(g==='Pair x2 +1 Female') return isTribe?450:600;
       return it.tek||0;
     }
     var mult=isTribe?(2/3):1;
