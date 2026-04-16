@@ -228,7 +228,7 @@ select option{background:#16213e}
   </div>
   <div class="shop-body">
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header" style="display:flex;align-items:center;justify-content:space-between">Browse<button id="sidebarViewToggle" onclick="toggleSidebarView()" style="background:#0f3460;border:1px solid #0f3460;color:#aaa;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer">A→Z</button></div>
+      <div class="sidebar-header" style="display:flex;align-items:center;justify-content:space-between;gap:4px"><span>Browse</span><button id="sidebarViewToggle" onclick="toggleSidebarView()" style="background:#0f3460;border:1px solid #0f3460;color:#aaa;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer;flex-shrink:0;white-space:nowrap">A→Z</button></div>
       <div class="sidebar-items" id="sidebarItems"></div>
     </div>
     <div class="grid" id="grid"><p class="loading-msg">Loading creatures...</p></div>
@@ -584,7 +584,7 @@ var sidebarViewAlpha = false;
 function toggleSidebarView() {
   sidebarViewAlpha = !sidebarViewAlpha;
   var btn = document.getElementById('sidebarViewToggle');
-  if(btn) btn.textContent = sidebarViewAlpha ? 'By Type' : 'A→Z';
+  if(btn) btn.textContent = sidebarViewAlpha ? 'Type' : 'A→Z';
   if(sidebarViewAlpha) populateSidebarAlpha();
   else populateSidebar();
 }
