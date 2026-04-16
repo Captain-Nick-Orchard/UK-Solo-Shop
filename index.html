@@ -1009,7 +1009,7 @@ function renderSummary(){
   var summaryHtml='', total=0;
   basket.forEach(function(it,i){
     if(bundledIdxs.indexOf(i)!==-1) return;
-    var v=it.gender==='Pair x2'?singlePairScaled:liveVal(it);
+    var v=it.gender==='Pair x2'&&(it._rawTek||0)===150?singlePairScaled:liveVal(it);
     total+=v;
     summaryHtml+="<div class='os-row'><span>"+it.creature+(it.variant?" ("+it.variant+")":"")+" · "+it.gender+"</span>";
     summaryHtml+="<span style='display:flex;align-items:center;gap:6px'>"+(v>0?v+' '+label:'—')+"<button onclick='removeItem("+i+")' style='background:#e94560;border:none;color:#fff;font-size:10px;font-weight:700;padding:2px 5px;border-radius:4px;cursor:pointer'>&times;</button></span></div>";
