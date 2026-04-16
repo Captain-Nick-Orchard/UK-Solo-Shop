@@ -30,13 +30,14 @@ body.in-shop{overflow-y:auto}
 body.in-shop .shop{display:flex}
 
 /* ── Header ── */
-.shop-header{background:#16213e;padding:.5rem 1rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:20}
-@media(max-width:768px){.shop-header{padding:.4rem .75rem}}
-@media(max-width:768px){.shop-header h1{font-size:clamp(.85rem,3vw,1rem)}}
+.shop-header{background:#16213e;padding:.5rem 1rem;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;border-bottom:1px solid #0f3460;position:sticky;top:0;z-index:20;min-height:54px}
+@media(max-width:768px){.shop-header{padding:.3rem .5rem;gap:4px}}
+@media(max-width:768px){.shop-header h1{font-size:clamp(.7rem,2.5vw,.85rem);letter-spacing:0}}
 .shop-header h1{font-size:clamp(1rem,2.5vw,1.4rem);font-weight:800;color:#e94560;letter-spacing:1px;text-align:center}
 .header-right{display:flex;align-items:center;gap:10px}
 #count{font-size:12px;color:#888}
 .back-btn{background:#0f3460;color:#aaa;border:1px solid #0f3460;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;flex-shrink:0}
+@media(max-width:768px){.back-btn{padding:4px 8px;font-size:11px}}
 .back-btn:hover{border-color:#e94560;color:#fff}
 .basket-btn{background:#e94560;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;flex-shrink:0}
 .basket-btn:hover{background:#c73652}
@@ -45,7 +46,7 @@ body.in-shop .shop{display:flex}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:50px;z-index:19;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;position:sticky;top:54px;z-index:19;overflow-x:auto;scrollbar-width:none}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -56,10 +57,11 @@ select option{background:#16213e}
 .sidebar-toggle:hover{border-color:#e94560;color:#fff}
 
 /* ── Shop body + sidebar ── */
-.shop-body{display:flex;flex:1;align-items:flex-start}
-.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:sticky;top:100px;height:calc(100vh - 100px);scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
+.shop-body{display:flex;flex:1}
+.sidebar{width:200px;overflow-y:auto;background:#12192e;border-right:1px solid #0f3460;display:flex;flex-direction:column;transition:width .25s;flex-shrink:0;position:fixed;top:104px;left:0;height:calc(100vh - 104px);z-index:18;scrollbar-width:thin;scrollbar-color:#0f3460 transparent}
 .sidebar::-webkit-scrollbar{width:4px}.sidebar::-webkit-scrollbar-track{background:transparent}.sidebar::-webkit-scrollbar-thumb{background:#0f3460;border-radius:4px}.sidebar::-webkit-scrollbar-thumb:hover{background:#e94560}
-@media(max-width:768px){.sidebar{width:0;overflow:hidden}}
+@media(max-width:768px){.sidebar{width:0;overflow:hidden;left:-200px}}
+@media(max-width:768px){.grid{margin-left:0}}
 @media(max-width:768px){.sidebar.open{width:200px;overflow-y:auto}}
 .sidebar.closed{width:0;overflow:hidden}
 .sidebar-header{padding:12px 16px;font-size:11px;font-weight:700;color:#e94560;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #0f3460;white-space:nowrap}
@@ -75,7 +77,7 @@ select option{background:#16213e}
 .sidebar-child.hidden{display:none}
 
 /* ── Grid ── */
-.grid{flex:1;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:1.5rem;align-content:start}
+.grid{flex:1;min-width:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding:1.5rem;align-content:start;margin-left:200px}
 
 /* ── Cards ── */
 .card{background:#16213e;border-radius:12px;border:1px solid #0f3460;overflow:hidden;display:flex;flex-direction:column;transition:border-color .2s,transform .15s;cursor:pointer}
@@ -193,14 +195,15 @@ select option{background:#16213e}
   <p>Server 5977 — Choose a category to browse</p>
   <div class="welcome-box"><p>Welcome to UK Solo Shop. The site is still WIP, so please message if something doesn't look correct. Prices are discounted in the basket as you add them. Currently limited to 20 dinos per order to keep things fair and orders moving. Please allow 48 hours to fill orders.</p></div>
   <div class="cat-grid">
+    <button class="cat-btn" data-type="New in" style="background:#e94560;border-color:#e94560;grid-column:1/-1"><span class="cat-emoji">✨</span><span class="cat-label">New In Shop</span></button>
     <button class="cat-btn all-btn" id="btn-all"><span class="cat-emoji">🦕</span><span class="cat-label">All</span></button>
     <button class="cat-btn" data-type="Items"><span class="cat-emoji">📦</span><span class="cat-label">Items</span></button>
     <button class="cat-btn" data-type="Boss Dinos"><span class="cat-emoji">👑</span><span class="cat-label">Boss Dinos</span></button>
     <button class="cat-btn" data-type="Flying"><span class="cat-emoji">🦅</span><span class="cat-label">Flying Dinos</span></button>
     <button class="cat-btn" data-type="Water"><span class="cat-emoji">🌊</span><span class="cat-label">Water Dinos</span></button>
-    <button class="cat-btn" data-type="DPS &amp; Soakers"><span class="cat-emoji">⚔️</span><span class="cat-label">DPS &amp; Soakers</span></button>
+    <button class="cat-btn" data-type="DPS / Soaker"><span class="cat-emoji">⚔️</span><span class="cat-label">DPS / Soaker</span></button>
     <button class="cat-btn" data-type="Utility"><span class="cat-emoji">🔧</span><span class="cat-label">Utility Dinos</span></button>
-    <button class="cat-btn" data-type="Shoulder Pets"><span class="cat-emoji">🐾</span><span class="cat-label">Shoulder Pets</span></button>
+    <button class="cat-btn" data-type="Shoulder Pets and Companions"><span class="cat-emoji">🐾</span><span class="cat-label">Shoulder Pets</span></button>
     <button class="cat-btn" data-type="Single Clones"><span class="cat-emoji">🧬</span><span class="cat-label">Single Clones</span></button>
   </div>
 </div>
@@ -217,7 +220,6 @@ select option{background:#16213e}
   </div>
   <div class="controls">
     <button class="sidebar-toggle" id="sidebarToggle">Dino List</button>
-    <button class="sidebar-toggle" id="sidebarViewToggle" onclick="toggleSidebarView()" style="font-size:12px;padding:5px 8px">A→Z</button>
     <select id="typeFilter"><option value="">All types</option></select>
     <input id="search" type="text" placeholder="Search creatures...">
     <select id="creatureFilter"><option value="">All creatures</option></select>
@@ -225,7 +227,7 @@ select option{background:#16213e}
   </div>
   <div class="shop-body">
     <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">Browse</div>
+      <div class="sidebar-header" style="display:flex;align-items:center;justify-content:space-between">Browse<button id="sidebarViewToggle" onclick="toggleSidebarView()" style="background:#0f3460;border:1px solid #0f3460;color:#aaa;border-radius:6px;padding:2px 7px;font-size:11px;cursor:pointer">A→Z</button></div>
       <div class="sidebar-items" id="sidebarItems"></div>
     </div>
     <div class="grid" id="grid"><p class="loading-msg">Loading creatures...</p></div>
@@ -324,16 +326,38 @@ function loadData() {
 
   Promise.all([
     fetch(base + encodeURIComponent(INV_SHEET)   + '?key=' + key).then(function(r){ return r.json(); }),
-    fetch(base + encodeURIComponent(STATS_SHEET) + '?key=' + key).then(function(r){ return r.json(); })
+    fetch(base + encodeURIComponent(STATS_SHEET) + '?key=' + key).then(function(r){ return r.json(); }),
+    fetch(base + encodeURIComponent('Config')    + '?key=' + key).then(function(r){ return r.json(); }).catch(function(){ return {values:[]}; })
   ]).then(function(results) {
-    parseStats(results[1]);       // parse stats first — needed for sigMap
-    parseInventory(results[0]);   // then group inventory using sigMap
+    parseStats(results[1]);
+    parseInventory(results[0]);
+    parseConfig(results[2]);
     populateFilters();
     populateSidebar();
     document.getElementById('grid').innerHTML = '<p class="loading-msg">Choose a category to start browsing.</p>';
   }).catch(function(err) {
     document.getElementById('grid').innerHTML = '<p class="error-msg">Failed to load shop data.<br>'+err.message+'</p>';
   });
+}
+
+function parseConfig(data) {
+  if (!data || !data.values) return;
+  var config = {};
+  data.values.forEach(function(row) {
+    if (row[0] && row[1] !== undefined) config[String(row[0]).trim()] = String(row[1]).trim();
+  });
+  if (config['landing_title']) {
+    var el = document.querySelector('.landing h1');
+    if (el) el.textContent = config['landing_title'];
+  }
+  if (config['landing_subtitle']) {
+    var el2 = document.querySelector('.landing p');
+    if (el2) el2.textContent = config['landing_subtitle'];
+  }
+  if (config['welcome_text']) {
+    var el3 = document.querySelector('.welcome-box p');
+    if (el3) el3.textContent = config['welcome_text'];
+  }
 }
 
 // sigMap built during parseStats — statsTag → signature string from cols C,D,E,F,I,J
@@ -504,11 +528,24 @@ function applyFilters() {
   var fc=document.getElementById('creatureFilter').value;
   var fq=document.getElementById('search').value;
   if(ft||fc||fq){
+    // When filtering: sort by level descending
     filtered=filtered.slice().sort(function(a,b){
       var levelA=0,levelB=0;
       a.forEach(function(r){ var s=statsMap[String(r[COL.statsTag]||'').trim()]; if(s&&s.levelI) levelA=Math.max(levelA,Number(s.levelI)+1); });
       b.forEach(function(r){ var s=statsMap[String(r[COL.statsTag]||'').trim()]; if(s&&s.levelI) levelB=Math.max(levelB,Number(s.levelI)+1); });
       return levelB-levelA;
+    });
+  } else {
+    // Default: New In first, then alphabetical by creature name
+    filtered=filtered.slice().sort(function(a,b){
+      var typeA=String(a[0][COL.type]||'').trim().toLowerCase();
+      var typeB=String(b[0][COL.type]||'').trim().toLowerCase();
+      var aNew=typeA==='new in'?0:1;
+      var bNew=typeB==='new in'?0:1;
+      if(aNew!==bNew) return aNew-bNew;
+      var nameA=String(a[0][COL.creature]||'').trim().toLowerCase();
+      var nameB=String(b[0][COL.creature]||'').trim().toLowerCase();
+      return nameA<nameB?-1:nameA>nameB?1:0;
     });
   }
   grid.innerHTML='';
@@ -878,6 +915,8 @@ function addToBasket(btn){
   else { gender=genSel?genSel.value:'Pair x2'; var scQty=!isNaN(Number(gender))&&Number(gender)>0; needed=scQty?Number(gender):gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
   if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
   var item={creature:name,level:level,variant:variant,gender:gender,slots:needed,imageUrl:String(r[COL.imageUrl]||'').trim(),type:String(r[COL.type]||'').trim()};
+  var rawTekVal=parseFloat(String(r['tek']||r[COL['tek']]||'0').replace(/[^0-9.]/g,''))||0;
+  item._rawTek=rawTekVal; // store raw sheet tek for bundle eligibility
   var isTribeBasket=document.getElementById('tribeCheck')&&document.getElementById('tribeCheck').checked;
   RESOURCES.forEach(function(rc){
     var raw=parseFloat(String(r[rc.key]||r[COL[rc.key]]||'0').replace(/[^0-9.]/g,''))||0;
@@ -940,7 +979,8 @@ function renderSummary(){
     if(key!=='tek'){ var tk=it.tek||0; var ltk=liveTek(it); var r2=tk>0?ltk/tk:1; return Math.round((it[key]||0)*r2); }
     return liveTek(it);
   }
-  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'; }).length;
+  var standardTek=isTribe?100:150;
+  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'&&(it._rawTek||0)===150; }).length;
   var bundles=Math.floor(pairCount/3);
   var bundlePrice=isTribe?500:750;
   var singlePairPrice=isTribe?200:300;
@@ -949,7 +989,7 @@ function renderSummary(){
   var bundlePriceScaled=Math.round(bundlePrice*ratio);
   var singlePairScaled=Math.round(singlePairPrice*ratio);
   var pairIdxs=[];
-  basket.forEach(function(it,i){ if(it.gender==='Pair x2') pairIdxs.push(i); });
+  basket.forEach(function(it,i){ if(it.gender==='Pair x2'&&(it._rawTek||0)===150) pairIdxs.push(i); });
   var bundledIdxs=pairIdxs.slice(0,bundles*3);
   var summaryHtml='', total=0;
   basket.forEach(function(it,i){
@@ -1007,21 +1047,22 @@ function placeOrder(){
     if(key!=='tek'){ var tk=it.tek||0; var ltk=poLiveTek(it); var r2=tk>0?ltk/tk:1; return Math.round((it[key]||0)*r2); }
     return poLiveTek(it);
   }
-  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'; }).length;
+  var stdTek=isTribe?100:150;
+  var pairCount=basket.filter(function(it){ return it.gender==='Pair x2'&&(it._rawTek||0)===150; }).length;
   var bundles=Math.floor(pairCount/3);
   var bundlePrice=isTribe?500:750;
   var tekTotal=basket.reduce(function(t,it){ return t+poLiveTek(it); },0);
   var ratio=tekTotal>0?basket.reduce(function(t,it){ return t+poLiveVal(it); },0)/tekTotal:1;
   var bundlePriceScaled=Math.round(bundlePrice*ratio);
   var pairIdxs=[];
-  basket.forEach(function(it,i){ if(it.gender==='Pair x2') pairIdxs.push(i); });
+  basket.forEach(function(it,i){ if(it.gender==='Pair x2'&&(it._rawTek||0)===150) pairIdxs.push(i); });
   var bundledIdxs=pairIdxs.slice(0,bundles*3);
 
   var items=basket.map(function(it,i){
     var isBundled=bundledIdxs.indexOf(i)!==-1;
     var cost=isBundled?0:poLiveVal(it);
-    var variantMarked=isBundled?'__BUNDLED__':it.variant;
-    return {creature:it.creature,level:it.level,variant:variantMarked,gender:it.gender,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
+    var genderMarked=isBundled?'__BUNDLED__':it.gender;
+    return {creature:it.creature,level:it.level,variant:it.variant,gender:genderMarked,cost:cost,imageUrl:it.imageUrl||'',type:it.type||''};
   });
 
   // Add one bundle summary row per bundle
@@ -1170,7 +1211,7 @@ function renderQueue(rows){
     if(cost.indexOf('Total')!==-1) continue;
     var costStr=cost.replace(/\s/g,''); // strip all whitespace
     if(costStr==='0'||costStr.match(/:\d*0+$/)&&!costStr.match(/:[1-9]/)) continue; // skip bundled items
-    if(variant==='__BUNDLED__') continue; // skip bundled individuals
+    if(gender==='__BUNDLED__') continue; // skip individual bundled items
     if(!creature||!name||!time) continue;
     var key=name+'|||'+time;
     if(!orderMap[key]){
