@@ -46,7 +46,7 @@ body.in-shop .shop{display:block}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ── Controls ── */
-.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;overflow-x:auto;scrollbar-width:none}
+.controls{padding:.75rem 1.5rem;display:flex;gap:8px;flex-wrap:wrap;background:#16213e;border-bottom:1px solid #0f3460;overflow-x:auto;scrollbar-width:none;position:sticky;top:54px;z-index:17}
 .controls::-webkit-scrollbar{display:none}
 input,select{padding:7px 10px;border:1px solid #0f3460;border-radius:8px;font-size:13px;background:#0f3460;color:#e0e0e0;outline:none}
 input:focus,select:focus{border-color:#e94560}
@@ -466,7 +466,17 @@ function enterShop(type) {
   activeType = type;
   document.body.classList.add('in-shop');
   var tf = document.getElementById('typeFilter');
-  if (tf) tf.value = type;
+  if (tf) {
+    tf.value = type;
+    // If value didn't set (option not yet populated), retry after filters load
+    if (type && tf.value !== type) {
+      var trySet = setInterval(function(){
+        tf.value = type;
+        if (tf.value === type) { clearInterval(trySet); applyFilters(); }
+      }, 100);
+      setTimeout(function(){ clearInterval(trySet); }, 3000);
+    }
+  }
   if (allGroups.length) applyFilters();
   else document.getElementById('grid').innerHTML = '<p class="loading-msg">Loading creatures...</p>';
   setTimeout(updateSidebarTop, 50);
@@ -503,6 +513,8 @@ function populateFilters() {
   names.forEach(function(n){ var o=document.createElement('option'); o.value=n; o.textContent=n; cf.appendChild(o); });
   types.forEach(function(t){ var o=document.createElement('option'); o.value=t; o.textContent=t; tf.appendChild(o); });
   varKeywords.forEach(function(k){ var o=document.createElement('option'); o.value=k; o.textContent=k; vf.appendChild(o); });
+  // Re-apply activeType after dropdown is populated
+  if(activeType && tf) tf.value=activeType;
 }
 
 function getFiltered() {
