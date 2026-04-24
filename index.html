@@ -774,19 +774,23 @@ function buildCardHTML(group, si) {
   parts.push("<div class='card-body'><div class='section-title'>Resources</div><div class='res-grid'>"+resHtml+"</div></div>");
   var typeVal=String(r[COL.type]||'').toLowerCase();
   var isSingleClone=typeVal.indexOf('single clone')!==-1;
+  var hasQty=amtAvail>0&&!isItem&&!isSingleClone;
   var genderBar;
   if(isSingleClone){
     var scOpts='<option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option>';
     genderBar="<div class='sel-bar gender'><label>Quantity</label><select class='gender-sel' onchange='onGenderChange(this)'>"+scOpts+"</select></div>";
+  } else if(hasQty){
+    var qtyOpts=Array.from({length:amtAvail},function(_,i){ return "<option value='"+(i+1)+"'>"+(i+1)+"</option>"; }).join('');
+    genderBar="<div class='sel-bar qty'><label>Quantity Available: "+amtAvail+"</label><select class='qty-sel' onchange='onQtyChange(this)'>"+qtyOpts+"</select></div>";
   } else {
     genderBar="<div class='sel-bar gender' style='"+(isItem?'display:none':'')+"'><label>Single or Pairs?</label><select class='gender-sel' onchange='onGenderChange(this)'><option>Male</option><option>Female</option><option selected>Pair x2</option><option>Pair x2 +1 Female</option></select></div>";
   }
   parts.push(genderBar);
   if(isItem){
-    var qtyOpts=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
-    parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOpts||'<option>0</option>')+"</select></div>");
+    var qtyOptsI=Array.from({length:amtAvail},function(_,idx){ return "<option value='"+(idx+1)+"'>"+(idx+1)+"</option>"; }).join('');
+    parts.push("<div class='sel-bar qty'><label>Quantity</label><select class='qty-sel' onchange='onQtyChange(this)'>"+(qtyOptsI||'<option>0</option>')+"</select></div>");
   }
-  var btnText=noStock?(isNewIn?'New In Shop':invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket';
+    var btnText=noStock?(isNewIn?'New In Shop':invText==='Shop Closed'?'Shop Closed':'No Stock'):'Add to Basket';
   parts.push("<button class='add-btn"+(noStock?' no-stock':'')+"'"+(noStock?'':' onclick="addToBasket(this)"')+">"+btnText+"</button>");
   return parts.join('');
 }
@@ -843,7 +847,10 @@ function updateCardSections(card,group,si){
   var resMult=1;
   var typeLC=String(r[COL.type]||'').toLowerCase();
   var isSC=typeLC.indexOf('single clone')!==-1;
+  var amtA=Number(r[COL.amountAvailable]||0)||0;
+  var isHQ=amtA>0&&!isItem&&!isSC;
   if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
+  else if(isHQ){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
   else if(isSC){ resMult=genSelU?Number(genSelU.value)||1:1; }
   else { var gv=genSelU?genSelU.value:''; resMult=gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
   // Update data-raw from new variant's values AND refresh display
@@ -928,10 +935,15 @@ function addToBasket(btn){
   var name=String(r[COL.creature]||'Unknown').trim();
   var variant=String(r[COL.variant]||'').trim().replace(/^aberrant\s*[-–—]\s*/i,'');
   var isItem=variant.indexOf('Item -')===0;
+  var amtAvailAdd=Number(r[COL.amountAvailable]||0)||0;
   var genSel=card.querySelector('.gender-sel');
   var qtySel=card.querySelector('.qty-sel');
+  var typeAdd=String(r[COL.type]||'').toLowerCase();
+  var isSCAdd=typeAdd.indexOf('single clone')!==-1;
+  var isHQAdd=amtAvailAdd>0&&!isItem&&!isSCAdd;
   var gender='Pair x2', needed=2;
   if(isItem){ gender='Item'; needed=qtySel?Number(qtySel.value)||1:1; }
+  else if(isHQAdd){ needed=qtySel?Number(qtySel.value)||1:1; gender='Qty x'+needed; }
   else { gender=genSel?genSel.value:'Pair x2'; var scQty=!isNaN(Number(gender))&&Number(gender)>0; needed=scQty?Number(gender):gender==='Pair x2'?2:gender==='Pair x2 +1 Female'?3:1; }
   if(slotsUsed()+needed>BASKET_LIMIT){ alert('Basket full — max '+BASKET_LIMIT+' creatures.'); return; }
   var item={creature:name,level:level,variant:variant,gender:gender,slots:needed,imageUrl:String(r[COL.imageUrl]||'').trim(),type:String(r[COL.type]||'').trim()};
