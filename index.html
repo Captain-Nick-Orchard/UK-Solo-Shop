@@ -530,7 +530,7 @@ function getFiltered() {
       var tag=String(r[COL.statsTag]||'').toLowerCase();
       var inv=String(r._inventoryText||'').toLowerCase();
       var stockMatch=!fs||(fs==='in stock'&&inv==='in stock')||(fs==='low stock'&&inv==='low stock')||(fs==='no stock'&&(inv==='no stock'||inv==='shop closed'||inv===''));
-      return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm===fc)&&(!ft||tp===ft)&&(!fv||vr.includes(fv))&&stockMatch;
+      return(!q||nm.includes(q)||inf.includes(q)||tag.includes(q)||vr.includes(q))&&(!fc||nm.includes(fc))&&(!ft||tp===ft||tp.indexOf(ft)!==-1)&&(!fv||vr.includes(fv))&&stockMatch;
     });
   });
 }
@@ -717,6 +717,7 @@ function buildCardHTML(group, si) {
   if(isNewIn&&!noStock) noStock=false; // explicitly allow
   if(isNewIn&&noStock) noStock=true;   // explicitly block
   var isSingleClone=typeValLC.indexOf('single clone')!==-1;
+  var hasQty=amtAvail>0&&!isItem&&!isSingleClone;
   var nameStyle='';
   var resMult=isItem?1:isSingleClone?1:hasQty?1:2;
   var invBadge=buildInvBadge(invHex,invText);
