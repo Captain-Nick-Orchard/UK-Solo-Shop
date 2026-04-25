@@ -662,8 +662,19 @@ function populateSidebar() {
 }
 
 function sidebarFilter(name,type,el){
-  var cf=document.getElementById('creatureFilter'), tf=document.getElementById('typeFilter');
-  if(cf) cf.value=name; if(tf) tf.value=type;
+  var cf=document.getElementById('creatureFilter');
+  var tf=document.getElementById('typeFilter');
+  var sr=document.getElementById('search');
+  // Try exact match via creatureFilter first, fall back to search
+  if(cf) cf.value=name;
+  if(tf) tf.value=type;
+  // If creatureFilter didn't find a match, use search box instead
+  if(cf && cf.value!==name && sr) {
+    cf.value='';
+    sr.value=name;
+  } else if(sr) {
+    sr.value='';
+  }
   applyFilters();
   document.querySelectorAll('.sidebar-item,.sidebar-type').forEach(function(i){ i.classList.remove('active'); });
   if(el) el.classList.add('active');
