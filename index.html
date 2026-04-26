@@ -713,11 +713,13 @@ function buildCardHTML(group, si) {
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
-  // New In: if in stock or low stock = active button; if no stock = show "New In Shop" disabled
-  if(isNewIn&&!noStock) noStock=false; // explicitly allow
-  if(isNewIn&&noStock) noStock=true;   // explicitly block
+  if(isNewIn&&!noStock) noStock=false;
+  if(isNewIn&&noStock) noStock=true;
   var isSingleClone=typeValLC.indexOf('single clone')!==-1;
-  var hasQty=amtAvail>0&&!isItem&&!isSingleClone;
+  // hasQty: has Amount Available column set AND stock is available
+  var hasQty=amtAvail>0&&!isItem&&!isSingleClone&&!noStock;
+  // amtAvail=0 with no stock text means treat as no stock
+  if(!isItem&&!isSingleClone&&amtAvail===0&&invText===''&&!isGreenish(invHex)) noStock=true;
   var nameStyle='';
   var resMult=isItem?1:isSingleClone?1:hasQty?1:2;
   var invBadge=buildInvBadge(invHex,invText);
@@ -827,7 +829,6 @@ function updateCardSections(card,group,si){
   var invTL=invText.toLowerCase(); var noStock=invTL==='no stock'||invTL==='shop closed'||(invText===''&&!isGreenish(invHex));
   var typeValLC=String(r[COL.type]||'').toLowerCase();
   var isNewIn=typeValLC==='new in'||typeValLC.indexOf('new in')!==-1;
-  // isNewIn only blocks basket when actually no stock
   var tagKey=String(r[COL.statsTag]||'').trim();
   var statsEntry=statsMap[tagKey]||null;
   var levelRaw=statsEntry&&statsEntry.levelI?Number(statsEntry.levelI):null;
@@ -835,6 +836,8 @@ function updateCardSections(card,group,si){
   var variant=String(r[COL.variant]||'').trim();
   var isItem=variant.indexOf('Item -')===0;
   var amtAvail=Number(r[COL.amountAvailable]||0)||0;
+  var isSCU=typeValLC.indexOf('single clone')!==-1;
+  var hasQtyU=amtAvail>0&&!isItem&&!isSCU&&!noStock;
 
   // Update header badge
   var hdr=card.querySelector('.card-header');
@@ -842,10 +845,22 @@ function updateCardSections(card,group,si){
   var lvlEl=card.querySelector('.level-badge');
   if(lvlEl) lvlEl.textContent=isItem?'Item':('Lvl '+level);
 
+  // Rebuild qty/gender selector for this variant
+  var selBar=card.querySelector('.sel-bar.qty,.sel-bar.gender');
+  if(selBar){
+    if(hasQtyU){
+      var qOpts=Array.from({length:amtAvail},function(_,i){ return '<option value="'+(i+1)+'">'+(i+1)+'</option>'; }).join('');
+      selBar.outerHTML="<div class='sel-bar qty'><label>Quantity Available: "+amtAvail+"</label><select class='qty-sel' onchange='onQtyChange(this)'>"+qOpts+"</select></div>";
+    } else if(!isSCU&&!isItem&&noStock){
+      selBar.outerHTML="<div class='sel-bar qty'><label style='color:#aaa'>Not in Stock</label></div>";
+    }
+  }
+
   // Update add button
   var addBtn=card.querySelector('.add-btn');
   if(addBtn){
-    if(noStock){ addBtn.classList.add('no-stock'); addBtn.textContent='No Stock'; addBtn.onclick=null; }
+    var btnLabel=noStock?(isNewIn?'New In Shop':invTL==='shop closed'?'Shop Closed':'No Stock'):'Add to Basket';
+    if(noStock){ addBtn.classList.add('no-stock'); addBtn.textContent=btnLabel; addBtn.onclick=null; }
     else { addBtn.classList.remove('no-stock'); addBtn.textContent='Add to Basket'; addBtn.onclick=function(){ addToBasket(addBtn); }; }
   }
 
@@ -859,11 +874,10 @@ function updateCardSections(card,group,si){
   var resMult=1;
   var typeLC=String(r[COL.type]||'').toLowerCase();
   var isSC=typeLC.indexOf('single clone')!==-1;
-  var amtA=Number(r[COL.amountAvailable]||0)||0;
-  var isHQ=amtA>0&&!isItem&&!isSC;
+  var isHQ=hasQtyU;
   if(isItem){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
   else if(isHQ){ resMult=qtySelU?Number(qtySelU.value)||1:1; }
-  else if(isSC){ resMult=genSelU?Number(genSelU.value)||1:1; }
+  else if(isSCU){ resMult=genSelU?Number(genSelU.value)||1:1; }
   else { var gv=genSelU?genSelU.value:''; resMult=gv==='Pair x2'?2:gv==='Pair x2 +1 Female'?3:1; }
   // Update data-raw from new variant's values AND refresh display
   var resEls=card.querySelectorAll('.res-value[data-raw]');
