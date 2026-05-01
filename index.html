@@ -572,7 +572,17 @@ function applyFilters() {
     card.className='card'; card.dataset.gi=gi; card.dataset.group=JSON.stringify(group);
     var startSi=0;
     var ftLower=(document.getElementById('typeFilter').value||'').toLowerCase();
+    var fqLower=(document.getElementById('search').value||'').toLowerCase();
+    // Variant filter
     if(fv){ for(var vi=0;vi<group.length;vi++){ if(String(group[vi][COL.variant]||'').toLowerCase().includes(fv)){ startSi=vi; break; } } }
+    // Search term — select variant that matches
+    if(fqLower&&startSi===0){
+      for(var vi=0;vi<group.length;vi++){
+        var vr=String(group[vi][COL.variant]||'').toLowerCase();
+        if(vr.includes(fqLower)){ startSi=vi; break; }
+      }
+    }
+    // Type filter
     if(ftLower&&startSi===0){
       for(var vi=0;vi<group.length;vi++){
         var vst=String(group[vi][COL.shopTag]||'').toLowerCase();
